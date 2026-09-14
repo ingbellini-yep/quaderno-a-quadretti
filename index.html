@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Quaderno a Quadretti</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Asap:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
@@ -65,7 +66,7 @@ button{font:inherit; cursor:pointer}
   max-width:1280px; margin:0 auto; padding-block:12px; padding-left:20px; padding-right:20px;
   display:flex; align-items:center; gap:16px; flex-wrap:wrap;
 }
-.marchio{display:flex; align-items:baseline; gap:10px; margin-right:auto}
+.marchio{display:flex; align-items:baseline; gap:10px; margin-right:auto; background:none; border:0; padding:0; color:inherit; text-align:left}
 .marchio b{font-family:"Spectral",serif; font-size:21px; font-weight:700; letter-spacing:-.01em}
 .marchio span{font-size:12px; color:var(--muted); letter-spacing:.09em; text-transform:uppercase}
 .badge-sync{
@@ -265,14 +266,60 @@ h1,h2,h3,h4{font-family:"Asap","Segoe UI",sans-serif;font-weight:700;letter-spac
 @keyframes pulse{50%{transform:scaleX(1.12);opacity:.65}}
 .mission-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.mission-card{position:relative;overflow:hidden;padding:25px;border-radius:20px;background:linear-gradient(135deg,#7057ee,#a169f5);color:#fff;box-shadow:0 14px 28px -18px #6244d2}.mission-card:after{content:"✦";position:absolute;right:23px;top:-15px;font-size:112px;opacity:.16}.mission-kicker{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.82}.mission-card h2{font-size:27px;margin:6px 0}.mission-card p{max-width:42ch;margin:0 0 16px;opacity:.92}.mission-card .btn{background:#fff;color:#5e48cd;box-shadow:none}.mission-card .btn:hover{box-shadow:none}.orbit-card{display:flex;align-items:center;gap:18px;padding:17px 19px;border:1px solid var(--line);border-radius:20px;background:#fff}.orbit{width:106px;height:106px;flex:none;border-radius:50%;background:conic-gradient(var(--accent) var(--percent),#ece9f7 0);display:grid;place-items:center;position:relative;animation:appear .7s cubic-bezier(.2,.8,.2,1)}.orbit:before{content:"";position:absolute;inset:10px;border-radius:50%;background:white}.orbit b,.orbit span{position:relative;z-index:1}.orbit b{font-size:24px}.orbit span{font-size:10px;font-weight:700;line-height:1.1;text-align:center;color:var(--muted)}.orbit-copy strong{display:block;font-size:17px}.orbit-copy p{margin:4px 0 0;color:var(--muted);font-size:13px}.subject-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.subject-node{position:relative;display:flex;align-items:center;gap:11px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer;text-align:left;transition:transform .2s ease,box-shadow .2s ease}.subject-node:hover{transform:translateY(-3px);box-shadow:var(--shadow)}.subject-icon{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;color:white;font-size:19px;font-weight:700}.subject-node b{display:block;font-size:14px}.subject-node small{display:block;color:var(--muted);font-size:11.5px}.mini-bar{height:5px;margin-top:5px;border-radius:9px;background:#ece9f7;overflow:hidden}.mini-bar i{display:block;height:100%;border-radius:inherit;background:var(--node-color);transition:width .7s ease}.home-tutorial{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;counter-reset:guide}.home-tutorial li{list-style:none;position:relative;padding:13px 12px 12px 43px;border-radius:14px;background:var(--surface-2);font-size:13px;color:var(--ink-2)}.home-tutorial li:before{counter-increment:guide;content:counter(guide);position:absolute;left:12px;top:12px;width:22px;height:22px;border-radius:8px;background:var(--accent);color:white;display:grid;place-items:center;font-size:12px;font-weight:700}.study-tip{display:flex;gap:12px;align-items:center;padding:14px 16px;margin-top:16px;border-radius:14px;background:var(--warn-soft);font-size:13.5px;color:#76541b}.study-tip span{font-size:25px}.celebrate{animation:appear .45s ease-out}@keyframes appear{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media (max-width:700px){.impianto{padding:16px;gap:15px}.copertina{padding:28px 22px}.mission-grid{grid-template-columns:1fr}.subject-map{grid-template-columns:1fr}.home-tutorial{grid-template-columns:1fr 1fr}.orbit-card{padding:14px}.orbit{width:82px;height:82px}.scheda-in{padding:20px}.domanda{padding:22px}.marchio span{display:none}}
+/* ---------- svolgimento guidato ---------- */
+.guida{display:grid; gap:14px}
+.guida-testa{display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13px; color:var(--muted)}
+.tappe{display:flex; gap:5px}
+.tappa{width:18px; height:7px; border-radius:4px; background:var(--line)}
+.tappa.fatta{background:var(--ok)} .tappa.ora{background:var(--accent)}
+.passaggio{border:1px solid var(--line); border-radius:14px; background:var(--surface); overflow:hidden}
+.passaggio .sugg{display:flex; gap:10px; padding:12px 16px; background:var(--accent-soft); font-size:14.5px; align-items:flex-start}
+.passaggio .sugg b{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); padding-top:3px; white-space:nowrap}
+.passaggio .corpo{padding:12px 16px; display:grid; gap:9px}
+.passaggio textarea{width:100%; min-height:72px; resize:vertical; padding:10px 13px; border:1.5px solid var(--line-strong); border-radius:12px;
+  background:var(--surface-2); color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:15px}
+.passaggio textarea:focus{border-color:var(--accent); outline:none; background:var(--surface)}
+.confronto{display:grid; gap:8px 12px; grid-template-columns:auto 1fr; font-size:14px; align-items:baseline; margin:0}
+.confronto dt{color:var(--muted); font-size:12px; letter-spacing:.05em; text-transform:uppercase}
+.confronto dd{margin:0}
+.confronto dd.tuo{font-family:"IBM Plex Mono",monospace; white-space:pre-wrap}
+.verdetto{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:3px 9px; border-radius:999px; justify-self:start}
+.verdetto.ok{background:var(--ok-soft); color:var(--ok)}
+.verdetto.boh{background:var(--warn-soft); color:var(--warn)}
+.verdetto.saltato{background:var(--surface-2); color:var(--muted); border:1px solid var(--line)}
+.guida-fine{padding:14px 16px; border-radius:14px; background:var(--ok-soft); display:grid; gap:6px; font-size:14.5px}
+.guida-fine b{color:var(--ok)}
+.esitino.guida{background:var(--warn-soft); color:var(--warn)}
+.griglia-es{display:grid; grid-template-columns:repeat(auto-fill,minmax(46px,1fr)); gap:8px}
+.griglia-es button{padding:9px 0; border:1px solid var(--line); border-radius:10px; background:var(--surface); font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--ink)}
+.griglia-es button:hover{border-color:var(--accent); color:var(--accent)}
+.griglia-liv{font-size:13px; margin:12px 0 7px; color:var(--ink-2); font-family:"Asap",sans-serif}
+.opz.sola{cursor:default}
+.opz.sola:hover{transform:none; border-color:var(--line)}
+
+/* ---------- importazione ---------- */
+.importa{display:grid; gap:10px}
+.importa label{font-size:13.5px; color:var(--ink-2); display:inline-flex; gap:6px; align-items:center}
+.importa select{font:inherit; padding:5px 8px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface); color:var(--ink)}
+.importa textarea{width:100%; min-height:110px; padding:10px 13px; border:1.5px solid var(--line-strong); border-radius:12px;
+  background:var(--surface-2); color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:13px}
+.esito-imp{font-size:13.5px; padding:10px 13px; border-radius:10px}
+.esito-imp.ok{background:var(--ok-soft); color:var(--ok)}
+.esito-imp.no{background:var(--err-soft); color:var(--err)}
+.importati{display:grid; gap:8px; margin-top:14px}
+.importato-riga{display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:9px 13px; border:1px solid var(--line); border-radius:12px; background:var(--surface); font-size:14px}
+.importato-riga .t{flex:1; min-width:160px}
+.etichetta{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line); border-radius:4px; padding:1px 6px; white-space:nowrap}
+details.modello summary{cursor:pointer; font-size:13.5px; color:var(--accent)}
+details.modello pre{white-space:pre-wrap; font-size:12px; background:var(--surface-2); padding:10px 13px; border-radius:10px; overflow-x:auto; max-height:320px; overflow-y:auto}
 </style>
 
 <header class="testata">
   <div class="testata-in">
-    <div class="marchio">
+    <button class="marchio" id="vai-home" type="button" title="Torna alla pagina iniziale">
       <b>Quaderno a Quadretti</b>
       <span>Liceo scientifico</span>
-    </div>
+    </button>
     <button class="btn neutro piccolo btn-indice" id="tgl-indice" type="button">Indice</button>
     <div class="badge-sync" id="badge-sync">progressi salvati su questo dispositivo</div>
   </div>
@@ -292,8 +339,8 @@ window.MathJax = {
 };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
-<script src="contenuti-matematica.js"></script>
-<script src="contenuti-fisica.js"></script>
+<script src="contenuti-matematica.js" charset="utf-8"></script>
+<script src="contenuti-fisica.js" charset="utf-8"></script>
 
 <script>
 (function(){
@@ -353,10 +400,15 @@ function progDi(argId, liv){
   if(!p) return null;
   return p[liv] || null;
 }
+function superatoP(p){ return !!(p && p.migliore >= (p.soglia||SOGLIA)); }
+function totaleDi(p){ return (p && p.totale) || PER_BATTERIA; }
+function sogliaDi(arg, liv){
+  var n = arg.livelli[liv].items.length;
+  return n===PER_BATTERIA ? SOGLIA : Math.max(1, Math.ceil(n*SOGLIA/PER_BATTERIA));
+}
 function sbloccato(argId, liv){
   if(liv===0) return true;
-  var prec = progDi(argId, liv-1);
-  return !!(prec && prec.migliore >= SOGLIA);
+  return superatoP(progDi(argId, liv-1));
 }
 function setAccento(materia){
   var r=document.documentElement;
@@ -427,12 +479,13 @@ function salvaProgressi(){
     }catch(e){}
   }
 }
-function registraEsito(argId, liv, punti){
+function registraEsito(argId, liv, punti, soglia, totale){
   if(!S.prog[argId]) S.prog[argId] = {};
   var p = S.prog[argId][liv] || {migliore:0, tentativi:0};
   p.tentativi = (p.tentativi||0) + 1;
   p.migliore = Math.max(p.migliore||0, punti);
   p.ultimo = punti;
+  p.soglia = soglia; p.totale = totale;
   p.data = new Date().toISOString();
   S.prog[argId][liv] = p;
   salvaProgressi();
@@ -454,11 +507,11 @@ function renderRail(){
         var punti = "";
         for(var l=0;l<a.livelli.length;l++){
           var p = progDi(a.id,l);
-          var cls = p ? (p.migliore>=SOGLIA ? "fatto" : "provato") : "";
+          var cls = p ? (superatoP(p) ? "fatto" : "provato") : "";
           punti += '<span class="punto '+cls+'"></span>';
         }
         html += '<button class="voce'+attiva+'" type="button" data-arg="'+a.id+'">'+
-                '<span class="txt">'+esc(a.titolo)+'</span><span class="punti">'+punti+'</span></button>';
+                '<span class="txt">'+esc(a.titolo)+(a.importato?' <span class="etichetta">tuo</span>':'')+'</span><span class="punti">'+punti+'</span></button>';
       });
     });
     var mancanti = ANNI.filter(function(y){ return !(m.anni[y]||[]).length; });
@@ -487,7 +540,7 @@ function statistiche(){
   });
   for(var id in S.prog){ for(var l in S.prog[id]){
     var p=S.prog[id][l];
-    if(p.migliore>=SOGLIA) fatti++;
+    if(superatoP(p)) fatti++;
     corretteTot += (p.migliore||0);
   }}
   return {tot:tot, fatti:fatti, corrette:corretteTot, materie:materieAttive};
@@ -501,7 +554,7 @@ function primoLivelloAperto(){
         var arg=lista[ai];
         for(var li=0;li<arg.livelli.length;li++){
           var p=progDi(arg.id,li);
-          if(sbloccato(arg.id,li) && (!p || p.migliore<SOGLIA)) return {mat:m,arg:arg,liv:li};
+          if(sbloccato(arg.id,li) && !superatoP(p)) return {mat:m,arg:arg,liv:li};
         }
       }
     }
@@ -514,8 +567,8 @@ function statoMateria(m){
     arg.livelli.forEach(function(_,i){
       livelli++;
       var p=progDi(arg.id,i);
-      if(p && p.migliore>=SOGLIA) fatti++;
-      if(!primo && sbloccato(arg.id,i) && (!p || p.migliore<SOGLIA)) primo=arg;
+      if(superatoP(p)) fatti++;
+      if(!primo && sbloccato(arg.id,i) && !superatoP(p)) primo=arg;
     });
   }); }
   return {livelli:livelli,fatti:fatti,primo:primo,percent:livelli?Math.round(fatti/livelli*100):0};
@@ -569,19 +622,21 @@ function renderHome(){
        '<p class="sez-sub">Il metodo è sempre lo stesso, per ogni argomento.</p>'+
        '<ol class="come-si-usa home-tutorial">'+
        '<li>Scegli un argomento dall’indice a sinistra e leggi le <strong>pillole di teoria</strong>, il formulario e gli esempi svolti.</li>'+
-       '<li>Passa alla <strong>palestra</strong>: dieci esercizi per volta, uno alla volta, senza correzione immediata.</li>'+
+       '<li>Passa alla <strong>palestra</strong>: dieci esercizi per volta, uno alla volta, senza correzione immediata. Se ti blocchi, lo <strong>svolgimento guidato</strong> ti suggerisce un passaggio alla volta.</li>'+
        '<li>Al termine ricevi il punteggio e la <strong>soluzione argomentata</strong> di ogni esercizio. Per ciascuna puoi dichiarare di aver capito oppure chiedere una spiegazione più estesa.</li>'+
        '<li>Con almeno <strong>'+SOGLIA+' risposte corrette su '+PER_BATTERIA+'</strong> si sblocca il livello successivo. Altrimenti si rifà il livello: gli esercizi restano gli stessi, così si lavora sugli errori.</li>'+
        '</ol>'+
        '<p class="sez-sub" style="margin-top:14px">I livelli superati e i punteggi restano salvati nel browser di questo dispositivo: riaprendo la pagina si riprende da dove si era arrivati. Cambiando computer o cancellando i dati del browser, invece, si riparte da zero.</p>'+
        '</div></section>';
 
+  h += htmlImport();
+
   var daRiprendere = [];
   MATERIE.forEach(function(m){ for(var a in m.anni){ (m.anni[a]||[]).forEach(function(arg){
     for(var l=0;l<arg.livelli.length;l++){
       if(sbloccato(arg.id,l)){
         var p=progDi(arg.id,l);
-        if(!p || p.migliore<SOGLIA){ daRiprendere.push({m:m,arg:arg,liv:l,p:p}); return; }
+        if(!superatoP(p)){ daRiprendere.push({m:m,arg:arg,liv:l,p:p}); return; }
       }
     }
   }); }});
@@ -595,7 +650,7 @@ function renderHome(){
     h += '<div class="livello">'+
          '<span class="grado" style="color:'+col+'">'+esc(r.m.nome)+'</span>'+
          '<h4>'+esc(r.arg.titolo)+'</h4>'+
-         '<p>'+esc(r.arg.livelli[r.liv].n)+(r.p?' · miglior risultato '+r.p.migliore+'/'+PER_BATTERIA:'')+'</p>'+
+         '<p>'+esc(r.arg.livelli[r.liv].n)+(r.p?' · miglior risultato '+r.p.migliore+'/'+totaleDi(r.p):'')+'</p>'+
          '<button class="btn piccolo" type="button" data-vai="'+r.arg.id+'">Apri l’argomento</button>'+
          '</div>';
   });
@@ -606,6 +661,7 @@ function renderHome(){
   Array.prototype.forEach.call($main.querySelectorAll("[data-vai]"), function(b){
     b.addEventListener("click", function(){ apriArgomento(b.getAttribute("data-vai")); });
   });
+  collegaImport();
   tex($main);
 }
 
@@ -659,16 +715,16 @@ function renderArgomento(t){
 
   h += '<section class="scheda"><div class="scheda-in sezione">'+
        '<h2>Palestra</h2>'+
-       '<p class="sez-sub">Tre batterie da '+PER_BATTERIA+' esercizi a difficoltà crescente. '+
-       'Servono almeno '+SOGLIA+' risposte corrette per passare al livello successivo.</p>'+
+       '<p class="sez-sub">'+a.livelli.length+(a.livelli.length===1?' batteria':' batterie')+' di esercizi a difficoltà crescente. '+
+       'Servono almeno '+sogliaDi(a,0)+' risposte corrette su '+a.livelli[0].items.length+' per passare al livello successivo.</p>'+
        '<div class="livelli">';
   a.livelli.forEach(function(l, i){
     var ok = sbloccato(a.id, i);
     var p = progDi(a.id, i);
     var stato;
     if(!ok) stato = '<span class="stato chiuso">Bloccato</span>';
-    else if(p && p.migliore>=SOGLIA) stato = '<span class="stato ok">Superato · '+p.migliore+'/'+PER_BATTERIA+'</span>';
-    else if(p) stato = '<span class="stato parz">Da rifare · '+p.migliore+'/'+PER_BATTERIA+'</span>';
+    else if(superatoP(p)) stato = '<span class="stato ok">Superato · '+p.migliore+'/'+totaleDi(p)+'</span>';
+    else if(p) stato = '<span class="stato parz">Da rifare · '+p.migliore+'/'+totaleDi(p)+'</span>';
     else stato = '<span class="stato chiuso">Mai svolto</span>';
     h += '<div class="livello'+(ok?"":" bloccato")+'">'+
          '<span class="grado">Livello '+(i+1)+'</span>'+
@@ -680,6 +736,19 @@ function renderArgomento(t){
          '</div>';
   });
   h += '</div></div></section>';
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>Svolgimento guidato</h2>'+
+       '<p class="sez-sub">Scegli un esercizio e risolvilo un passaggio alla volta: il quaderno ti dice che cosa scrivere, '+
+       'tu lo scrivi, poi confronti con il passaggio atteso. Non incide sui punteggi della palestra.</p>';
+  a.livelli.forEach(function(l, i){
+    h += '<div class="griglia-liv">'+esc(l.n)+'</div><div class="griglia-es">';
+    l.items.forEach(function(_, j){
+      h += '<button type="button" data-guida-liv="'+i+'" data-guida-idx="'+j+'" title="Esercizio '+(j+1)+'">'+(j+1)+'</button>';
+    });
+    h += '</div>';
+  });
+  h += '</div></section>';
 
   if(a.risorse && a.risorse.length){
     h += '<section class="scheda"><div class="scheda-in sezione">'+
@@ -697,6 +766,11 @@ function renderArgomento(t){
   Array.prototype.forEach.call($main.querySelectorAll("[data-liv]"), function(b){
     b.addEventListener("click", function(){ avviaQuiz(a.id, Number(b.getAttribute("data-liv"))); });
   });
+  Array.prototype.forEach.call($main.querySelectorAll("[data-guida-liv]"), function(b){
+    b.addEventListener("click", function(){
+      avviaGuida(a.id, Number(b.getAttribute("data-guida-liv")), Number(b.getAttribute("data-guida-idx")), "argomento");
+    });
+  });
   tex($main);
 }
 
@@ -705,7 +779,7 @@ function avviaQuiz(argId, liv){
   var t = trovaArgomento(argId);
   if(!t || !sbloccato(argId, liv)) return;
   S.vista="quiz";
-  S.quiz = { argId:argId, liv:liv, idx:0, risposte:[], items:t.arg.livelli[liv].items.slice() };
+  S.quiz = { argId:argId, liv:liv, idx:0, risposte:[], guidati:{}, items:t.arg.livelli[liv].items.slice() };
   renderDomanda();
   window.scrollTo({top:0, behavior:"smooth"});
 }
@@ -726,7 +800,17 @@ function renderDomanda(){
       '<div class="num">Esercizio '+(q.idx+1)+'</div>'+
       '<div class="testo">'+item.q+'</div>';
 
-  if(item.tipo==="scelta"){
+  var guidato = !!q.guidati[q.idx];
+  var guidaFinita = guidato && G && G.i >= G.passi.length;
+
+  if(guidato){
+    if(item.tipo==="scelta"){
+      h += '<div class="opzioni" style="margin-bottom:18px">'+item.opz.map(function(o,i){
+        return '<div class="opz sola"><span>'+String.fromCharCode(65+i)+'.</span><span>'+o+'</span></div>';
+      }).join("")+'</div>';
+    }
+    h += '<div id="g-box">'+htmlGuida()+'</div>';
+  } else if(item.tipo==="scelta"){
     h += '<div class="opzioni" id="opzioni">';
     item.opz.forEach(function(o,i){
       h += '<label class="opz" data-i="'+i+'"><input type="radio" name="scelta" id="opz-'+i+'" value="'+i+'"><span>'+o+'</span></label>';
@@ -740,15 +824,38 @@ function renderDomanda(){
          '<p class="suggerimento">Scrivi il risultato in forma semplice: per le potenze va bene sia <code>x^2</code> sia <code>x2</code>, il segno di moltiplicazione può essere omesso e la virgola decimale vale quanto il punto.</p>';
   }
 
-  h += '<div class="azioni">'+
-       '<button class="btn" type="button" id="conferma">Conferma</button>'+
-       '<button class="btn neutro" type="button" id="nonso">Non lo so</button>'+
-       '<button class="btn ghost piccolo" type="button" id="esci">Esci dalla prova</button>'+
-       '</div>'+
-       '<p class="suggerimento">Le soluzioni compaiono tutte insieme alla fine della batteria.</p>'+
-       '</div></section>';
+  if(guidato){
+    h += '<div class="azioni">'+
+         (guidaFinita ? '<button class="btn" type="button" id="g-prosegui">Prosegui con il prossimo esercizio</button>' : '')+
+         '<button class="btn ghost piccolo" type="button" id="esci">Esci dalla prova</button>'+
+         '</div>'+
+         '<p class="suggerimento">Esercizio svolto con la guida: non conta nel punteggio della batteria, ma lo ritrovi nella revisione finale.</p>'+
+         '</div></section>';
+  } else {
+    h += '<div class="azioni">'+
+         '<button class="btn" type="button" id="conferma">Conferma</button>'+
+         '<button class="btn neutro" type="button" id="nonso">Non lo so</button>'+
+         '<button class="btn ghost" type="button" id="guida">Svolgimento guidato</button>'+
+         '<button class="btn ghost piccolo" type="button" id="esci">Esci dalla prova</button>'+
+         '</div>'+
+         '<p class="suggerimento">Le soluzioni compaiono tutte insieme alla fine della batteria. Con lo svolgimento guidato l’esercizio non conta nel punteggio.</p>'+
+         '</div></section>';
+  }
 
   $main.innerHTML = h;
+
+  if(guidato){
+    collegaGuida($main, renderDomanda);
+    var pros = document.getElementById("g-prosegui");
+    if(pros) pros.addEventListener("click", function(){ avanza(""); });
+  } else {
+    document.getElementById("guida").addEventListener("click", function(){
+      if(!confirm("Con lo svolgimento guidato questo esercizio non conta nel punteggio della batteria. Vuoi continuare?")) return;
+      q.guidati[q.idx] = true;
+      nuovaGuida(q.argId, q.liv, q.idx, "quiz", null);
+      renderDomanda();
+    });
+  }
 
   var opzioni = document.getElementById("opzioni");
   if(opzioni){
@@ -765,8 +872,10 @@ function renderDomanda(){
     input.focus();
     input.addEventListener("keydown", function(ev){ if(ev.key==="Enter"){ ev.preventDefault(); conferma(); } });
   }
-  document.getElementById("conferma").addEventListener("click", conferma);
-  document.getElementById("nonso").addEventListener("click", function(){ avanza(""); });
+  if(!guidato){
+    document.getElementById("conferma").addEventListener("click", conferma);
+    document.getElementById("nonso").addEventListener("click", function(){ avanza(""); });
+  }
   document.getElementById("esci").addEventListener("click", function(){
     if(confirm("Uscendo la prova non viene registrata. Vuoi davvero uscire?")) apriArgomento(q.argId);
   });
@@ -797,7 +906,7 @@ function chiudiQuiz(){
   var punti = 0;
   q.items.forEach(function(it,i){ if(corretta(it, q.risposte[i])) punti++; });
   q.punti = punti;
-  registraEsito(q.argId, q.liv, punti);
+  registraEsito(q.argId, q.liv, punti, sogliaDi(trovaArgomento(q.argId).arg, q.liv), q.items.length);
   S.vista = "esito";
   renderRail();
   renderEsito();
@@ -805,17 +914,18 @@ function chiudiQuiz(){
 }
 function renderEsito(){
   var q = S.quiz, t = trovaArgomento(q.argId);
-  var superato = q.punti >= SOGLIA;
+  var soglia = sogliaDi(t.arg, q.liv), tot = q.items.length;
+  var superato = q.punti >= soglia;
   var ultimo = q.liv >= t.arg.livelli.length-1;
   var msg, titolo;
-  if(q.punti===PER_BATTERIA){ titolo="Batteria perfetta"; msg="Dieci su dieci. Il livello successivo è aperto."; }
-  else if(superato){ titolo="Livello superato"; msg="Hai raggiunto la soglia di "+SOGLIA+"/"+PER_BATTERIA+". Leggi comunque le soluzioni degli esercizi sbagliati prima di proseguire."; }
-  else { titolo="Livello non superato"; msg="Servono almeno "+SOGLIA+" risposte corrette su "+PER_BATTERIA+". Studia le soluzioni qui sotto e rifai la batteria: gli esercizi sono gli stessi."; }
+  if(q.punti===tot){ titolo="Batteria perfetta"; msg="Tutte giuste. Il livello successivo è aperto."; }
+  else if(superato){ titolo="Livello superato"; msg="Hai raggiunto la soglia di "+soglia+"/"+tot+". Leggi comunque le soluzioni degli esercizi sbagliati prima di proseguire."; }
+  else { titolo="Livello non superato"; msg="Servono almeno "+soglia+" risposte corrette su "+tot+". Studia le soluzioni qui sotto e rifai la batteria: gli esercizi sono gli stessi."; }
   if(superato && ultimo) msg = "Hai completato l’ultimo livello di questo argomento.";
 
   var h = '<section class="scheda quiz">'+
     '<div class="punteggio">'+
-      '<div class="voto" style="color:'+(superato?"var(--ok)":"var(--err)")+'">'+q.punti+'<small>/'+PER_BATTERIA+'</small></div>'+
+      '<div class="voto" style="color:'+(superato?"var(--ok)":"var(--err)")+'">'+q.punti+'<small>/'+tot+'</small></div>'+
       '<div class="msg"><h2>'+titolo+'</h2><p>'+msg+'</p></div>'+
     '</div>'+
     '<div class="revisione" id="revisione">'+
@@ -823,13 +933,15 @@ function renderEsito(){
 
   q.items.forEach(function(it,i){
     var ok = corretta(it, q.risposte[i]);
+    var conGuida = !!(q.guidati && q.guidati[i]);
     var tua = q.risposte[i];
-    var tuaTxt = (tua===""||tua==null) ? "(nessuna risposta)"
+    var tuaTxt = conGuida ? "(svolto con la guida)"
+               : (tua===""||tua==null) ? "(nessuna risposta)"
                : (it.tipo==="scelta" ? it.opz[Number(tua)] : esc(tua));
     h += '<article class="rev '+(ok?"giusta":"sbagliata")+'" data-i="'+i+'">'+
       '<div class="rev-testa"><span class="n">'+(i+1)+'</span>'+
       '<span class="q">'+it.q+'</span>'+
-      '<span class="esitino '+(ok?"ok":"no")+'">'+(ok?"corretta":"da rivedere")+'</span></div>'+
+      '<span class="esitino '+(ok?"ok":(conGuida?"guida":"no"))+'">'+(ok?"corretta":(conGuida?"con la guida":"da rivedere"))+'</span></div>'+
       '<div class="rev-corpo">'+
         '<dl class="riga-risp">'+
           '<dt>La tua</dt><dd>'+tuaTxt+'</dd>'+
@@ -842,6 +954,7 @@ function renderEsito(){
           '<button class="btn piccolo ghost" type="button" data-spiega="'+i+'">No, spiegamelo meglio</button>'+
         '</div>'+
         '<div class="approfondimento" id="appr-'+i+'" hidden></div>'+
+        '<div><button class="btn piccolo neutro" type="button" data-guida="'+i+'">Rifallo passo per passo</button></div>'+
       '</div></article>';
   });
 
@@ -864,6 +977,9 @@ function renderEsito(){
     });
   });
   collegaSpiega($main);
+  Array.prototype.forEach.call($main.querySelectorAll("[data-guida]"), function(b){
+    b.addEventListener("click", function(){ avviaGuida(q.argId, q.liv, Number(b.getAttribute("data-guida")), "esito"); });
+  });
 
   var rifai = document.getElementById("rifai");
   if(rifai) rifai.addEventListener("click", function(){ avviaQuiz(q.argId, q.liv); });
@@ -930,12 +1046,365 @@ async function chiediSpiegazione(i, bottone){
   }
 }
 
+/* =================== svolgimento guidato =================== */
+/* Ogni esercizio può avere una guida scritta dall'autore (campo "guida": elenco di
+   passi {s: suggerimento, r: passaggio atteso, k: chiavi per il controllo}). Se manca,
+   la guida viene ricavata dalla spiegazione; su claude.ai si può anche chiederne una
+   più dettagliata al modello. */
+var G = null;   // stato della guida in corso
+
+function testoPiano(s){ return String(s==null?"":s).replace(/<[^>]+>/g,""); }
+
+function frasiDi(html){
+  // spezza la spiegazione in frasi, senza tagliare dentro le formule $...$
+  var t = testoPiano(html).replace(/\s+/g," ").trim();
+  var out=[], cur="", inTex=false;
+  for(var i=0;i<t.length;i++){
+    var c=t.charAt(i); cur+=c;
+    if(c==="$"){ inTex=!inTex; continue; }
+    if(!inTex && c==="." && (i+1>=t.length || t.charAt(i+1)===" ")){
+      if(cur.trim().length>2) out.push(cur.trim());
+      cur="";
+    }
+  }
+  if(cur.trim().length>2) out.push(cur.trim());
+  return out;
+}
+function normPasso(p){
+  return { s:String(p.s||"Scrivi il passaggio successivo."), r:String(p.r||""),
+           k:Array.isArray(p.k)?p.k.map(String):[] };
+}
+function guidaAutomatica(item){
+  var frasi = frasiDi(item.spieg), passi=[];
+  if(item.tipo==="scelta"){
+    var giusta = testoPiano(item.opz[item.ok]);
+    passi.push({s:"Prima di guardare le opzioni, scrivi con parole tue la regola o la definizione che serve per rispondere.",
+                r: frasi[0] || "Rileggi la pillola di teoria collegata a questo esercizio.", k:[]});
+    if(frasi.length>1) passi.push({s:"Applica la regola al caso dell'esercizio e scrivi che cosa ne deduci.", r: frasi.slice(1).join(" "), k:[]});
+    passi.push({s:"Ora scegli l'opzione corretta e scrivi in una riga perché le altre non vanno bene.",
+                r:"Risposta: «"+esc(giusta)+"».", k:[giusta]});
+    return passi;
+  }
+  var finale = (item.sol && item.sol.length) ? String(item.sol[0]) : (item.num ? String(item.num.v).replace(".",",") : "");
+  var unita = item.num && item.num.u ? " "+item.num.u : "";
+  var sugg = ["Individua i dati e l'incognita, poi scrivi la regola o la formula che userai.",
+              "Sostituisci i dati nella formula e svolgi i calcoli, un'operazione per volta.",
+              "Continua lo svolgimento: semplifica o completa il calcolo.",
+              "Controlla il risultato parziale e prosegui."];
+  var corpo = frasi.slice(0,4);
+  corpo.forEach(function(f,i){ passi.push({s:sugg[Math.min(i,sugg.length-1)], r:f, k:[]}); });
+  if(!corpo.length) passi.push({s:sugg[0], r:"Rileggi la teoria in pillole e gli esempi svolti: l'esercizio segue lo stesso schema.", k:[]});
+  passi.push({s:"Scrivi la risposta finale"+(unita?", con l'unità di misura":"")+".",
+              r:"Risposta finale: <code>"+esc(finale)+esc(unita)+"</code>", k:[finale]});
+  return passi;
+}
+function controllaPasso(passo, testo){
+  var t = normalizza(testo);
+  if(!t) return "vuoto";
+  var chiavi = passo.k || [];
+  for(var i=0;i<chiavi.length;i++){ var c=normalizza(chiavi[i]); if(c && t.indexOf(c)>=0) return "ok"; }
+  var nums = testoPiano(passo.r).replace(/\{,\}/g,",").match(/-?\d+(?:[.,]\d+)?/g);
+  if(nums && nums.length){ var u=normalizza(nums[nums.length-1]); if(u && t.indexOf(u)>=0) return "ok"; }
+  return "boh";
+}
+function passiPer(item){
+  if(item._guidaAI && item._guidaAI.length) return {passi:item._guidaAI.map(normPasso), fonte:"ai"};
+  if(Array.isArray(item.guida) && item.guida.length) return {passi:item.guida.map(normPasso), fonte:"autore"};
+  return {passi:guidaAutomatica(item), fonte:"auto"};
+}
+function nuovaGuida(argId, liv, idx, host, ritorno){
+  var t = trovaArgomento(argId); if(!t) return null;
+  var item = t.arg.livelli[liv].items[idx];
+  var pp = passiPer(item);
+  G = {argId:argId, liv:liv, idx:idx, item:item, passi:pp.passi, fonte:pp.fonte, i:0, svolti:[], host:host, ritorno:ritorno};
+  return G;
+}
+function htmlGuida(){
+  var g=G, n=g.passi.length, h='<div class="guida">';
+  var tappe=""; for(var j=0;j<n;j++) tappe+='<span class="tappa '+(j<g.i?"fatta":(j===g.i?"ora":""))+'"></span>';
+  var fonte = g.fonte==="autore" ? "guida preparata con l’esercizio" : g.fonte==="ai" ? "guida generata su richiesta" : "guida ricavata dalla soluzione";
+  h+='<div class="guida-testa"><span>'+(g.i<n?'Passaggio '+(g.i+1)+' di '+n:'Tutti i '+n+' passaggi svolti')+'</span>'+
+     '<span class="tappe">'+tappe+'</span><span>· '+fonte+'</span></div>';
+  g.svolti.forEach(function(sv,j){
+    var p=g.passi[j];
+    var v = sv.esito==="ok" ? '<span class="verdetto ok">✓ coincide con il passaggio atteso</span>'
+          : sv.esito==="saltato" ? '<span class="verdetto saltato">passaggio mostrato</span>'
+          : '<span class="verdetto boh">confronta con il passaggio atteso</span>';
+    h+='<div class="passaggio"><div class="sugg"><b>Passo '+(j+1)+'</b><span>'+esc(p.s)+'</span></div><div class="corpo">'+
+       '<dl class="confronto"><dt>Il tuo</dt><dd class="tuo">'+(sv.tuo?esc(sv.tuo):'<i style="color:var(--muted)">(non scritto)</i>')+'</dd>'+
+       '<dt>Atteso</dt><dd>'+p.r+'</dd></dl>'+v+'</div></div>';
+  });
+  if(g.i<n){
+    var p=g.passi[g.i];
+    h+='<div class="passaggio"><div class="sugg"><b>Passo '+(g.i+1)+'</b><span>'+esc(p.s)+'</span></div><div class="corpo">'+
+       '<textarea id="g-testo" placeholder="Scrivi qui il passaggio, come lo scriveresti sul quaderno" aria-label="Il tuo passaggio"></textarea>'+
+       '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="g-fatto">Ho scritto il passaggio</button>'+
+       '<button class="btn ghost" type="button" id="g-mostra">Mostrami il passaggio</button></div>'+
+       '<p class="suggerimento" style="margin-top:0">Ctrl+Invio conferma. Dopo la conferma vedrai il passaggio atteso e il suggerimento successivo.</p></div></div>';
+  } else {
+    var ok=0, boh=0, salt=0;
+    g.svolti.forEach(function(sv){ if(sv.esito==="ok") ok++; else if(sv.esito==="saltato") salt++; else boh++; });
+    h+='<div class="guida-fine"><b>Risoluzione completata</b>'+
+       '<span>Passaggi che coincidono: '+ok+' · da confrontare: '+boh+' · mostrati: '+salt+'.</span>'+
+       '<span>Se un passaggio non ti è chiaro, rileggi la teoria in pillole e l’esempio svolto più simile.</span></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function collegaGuida(root, alTermine){
+  var ta=root.querySelector("#g-testo");
+  if(!ta) return;
+  ta.focus();
+  ta.addEventListener("keydown", function(ev){
+    if(ev.key==="Enter" && (ev.ctrlKey||ev.metaKey)){ ev.preventDefault(); root.querySelector("#g-fatto").click(); }
+  });
+  root.querySelector("#g-fatto").addEventListener("click", function(){
+    var v=ta.value;
+    if(!v.trim()){ alert("Scrivi il passaggio, oppure usa «Mostrami il passaggio»."); return; }
+    G.svolti.push({tuo:v, esito:controllaPasso(G.passi[G.i], v)}); G.i++; alTermine();
+  });
+  root.querySelector("#g-mostra").addEventListener("click", function(){
+    G.svolti.push({tuo:"", esito:"saltato"}); G.i++; alTermine();
+  });
+}
+function avviaGuida(argId, liv, idx, ritorno){
+  if(!nuovaGuida(argId, liv, idx, "pagina", ritorno)) return;
+  S.vista="guida"; renderGuida();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function riavviaGuida(){
+  var g=G;
+  if(g.host==="quiz"){ nuovaGuida(g.argId, g.liv, g.idx, "quiz", null); renderDomanda(); }
+  else avviaGuida(g.argId, g.liv, g.idx, g.ritorno);
+}
+function renderGuida(){
+  var g=G, t=trovaArgomento(g.argId), item=g.item, n=t.arg.livelli[g.liv].items.length;
+  var finita = g.i>=g.passi.length;
+  var bottoneAI = (S.sample && g.fonte!=="ai" && (finita || g.i===0))
+    ? '<button class="btn ghost piccolo" type="button" id="g-ai">Chiedi una guida più dettagliata</button>' : '';
+  var h='<section class="scheda quiz">'+
+    '<div class="quiz-testa"><div class="qt"><h2>'+esc(t.arg.titolo)+'</h2>'+
+    '<div class="sub">Svolgimento guidato · '+esc(t.arg.livelli[g.liv].n)+' · esercizio '+(g.idx+1)+' di '+n+'</div></div>'+
+    '<button class="btn ghost piccolo" type="button" id="g-torna">'+(g.ritorno==="esito"?"Torna alla revisione":"Torna all’argomento")+'</button></div>'+
+    '<div class="domanda"><div class="num">Esercizio '+(g.idx+1)+'</div><div class="testo">'+item.q+'</div>';
+  if(item.tipo==="scelta"){
+    h += '<div class="opzioni" style="margin-bottom:18px">'+item.opz.map(function(o,i){
+      return '<div class="opz sola"><span>'+String.fromCharCode(65+i)+'.</span><span>'+o+'</span></div>';
+    }).join("")+'</div>';
+  }
+  h += '<div id="g-box">'+htmlGuida()+'</div>';
+  if(finita){
+    h += '<div class="azioni">'+
+         (g.idx+1<n ? '<button class="btn" type="button" id="g-next">Esercizio successivo</button>' : '')+
+         '<button class="btn neutro" type="button" id="g-rifai">Rifai da capo</button>'+bottoneAI+'</div>';
+  } else if(bottoneAI){
+    h += '<div class="azioni">'+bottoneAI+'</div>';
+  }
+  h += '</div></section>';
+  $main.innerHTML=h;
+  document.getElementById("g-torna").addEventListener("click", tornaDaGuida);
+  var nx=document.getElementById("g-next"); if(nx) nx.addEventListener("click", function(){ avviaGuida(g.argId,g.liv,g.idx+1,g.ritorno); });
+  var rf=document.getElementById("g-rifai"); if(rf) rf.addEventListener("click", function(){ avviaGuida(g.argId,g.liv,g.idx,g.ritorno); });
+  var ai=document.getElementById("g-ai"); if(ai) ai.addEventListener("click", function(){ generaGuidaAI(ai); });
+  collegaGuida($main, renderGuida);
+  tex($main);
+}
+function tornaDaGuida(){
+  var g=G;
+  if(g.ritorno==="esito" && S.quiz && S.quiz.argId===g.argId && S.quiz.punti!=null){ S.vista="esito"; renderEsito(); }
+  else apriArgomento(g.argId);
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+async function generaGuidaAI(bottone){
+  var g=G, t=trovaArgomento(g.argId), it=g.item;
+  if(!S.sample) return;
+  bottone.disabled=true; bottone.textContent="Sto preparando la guida…";
+  var richiesta =
+    "Sei un insegnante di matematica e fisica di liceo scientifico. Prepara una guida allo svolgimento passo per passo per questo esercizio.\n"+
+    "ARGOMENTO: "+t.arg.titolo+"\nESERCIZIO: "+testoPiano(it.q)+"\n"+
+    (it.tipo==="scelta" ? "OPZIONI: "+it.opz.map(function(o,i){ return (i+1)+") "+testoPiano(o); }).join("; ")+"\n" : "")+
+    "RISPOSTA CORRETTA: "+testoPiano(rispostaGiusta(it))+"\nSPIEGAZIONE: "+testoPiano(it.spieg)+"\n\n"+
+    "Rispondi SOLO con un array JSON di 3-5 oggetti {\"s\":..., \"r\":..., \"k\":[...]}: "+
+    "s = che cosa deve scrivere lo studente in questo passaggio, in forma imperativa, senza rivelare il risultato; "+
+    "r = il passaggio svolto come dovrebbe risultare, conciso, in testo semplice senza LaTeX (usa x^2, 3/4, 0,5); "+
+    "k = 1-3 stringhe brevi (numeri o parole chiave) che un passaggio corretto contiene. "+
+    "L'ultimo r deve contenere la risposta finale. Italiano, dai del tu.";
+  try{
+    var r = await S.sample(richiesta, {modelTier:"default"});
+    var m = String(r && r.text || "").match(/\[[\s\S]*\]/);
+    var arr = JSON.parse(m ? m[0] : "[]");
+    if(!Array.isArray(arr) || !arr.length) throw new Error("vuoto");
+    it._guidaAI = arr.map(normPasso).map(function(p){ p.r = esc(p.r); return p; });
+    riavviaGuida();
+  }catch(e){
+    bottone.disabled=false; bottone.textContent="Non sono riuscito a generare la guida: riprova";
+  }
+}
+
+/* =================== importazione di esercizi =================== */
+/* Un file JSON con un argomento (stesso schema dei file dei contenuti) oppure solo
+   {titolo, materia, anno, items:[...]} oppure un semplice elenco di esercizi.
+   Le batterie importate restano nel browser e compaiono nell'indice come argomenti. */
+var CHIAVE_IMPORT = "quaderno-quadretti-importati";
+var MODELLO_IMPORT = {
+  titolo:"Equazioni di primo grado (prova)", materia:"matematica", anno:1,
+  sommario:"Batteria di prova preparata dall'insegnante.",
+  livelli:[{ n:"Livello 1 - Base", d:"Equazioni con una sola incognita.", items:[
+    { q:"Risolvi: $2x+3=11$", tipo:"aperta", sol:["4","x=4"], num:{v:4,tol:0},
+      spieg:"Porto il 3 a destra: $2x=8$, quindi $x=4$.",
+      guida:[ {s:"Isola il termine con la x portando i numeri a destra.", r:"$2x=11-3=8$", k:["2x=8"]},
+              {s:"Dividi entrambi i membri per il coefficiente della x.", r:"$x=8:2=4$", k:["4"]} ] },
+    { q:"Un'equazione di primo grado ha al massimo:", tipo:"scelta",
+      opz:["nessuna soluzione","una soluzione","due soluzioni","infinite soluzioni"], ok:1,
+      spieg:"Se il coefficiente della x non è zero la soluzione è una sola." }
+  ]}]
+};
+function caricaImportati(){
+  try{ var raw=localStorage.getItem(CHIAVE_IMPORT); if(raw){ var l=JSON.parse(raw); if(Array.isArray(l)) return l; } }catch(e){}
+  return [];
+}
+function salvaImportati(l){ try{ localStorage.setItem(CHIAVE_IMPORT, JSON.stringify(l)); }catch(e){} }
+function montaImportati(){
+  var imp = caricaImportati();
+  MATERIE.forEach(function(m){
+    if(!m.base){ m.base={}; for(var a in m.anni) m.base[a]=m.anni[a]; }
+    m.anni={}; for(var b in m.base) m.anni[b]=m.base[b].slice();
+    imp.filter(function(x){ return x.materia===m.id; }).forEach(function(x){
+      var y = x.anno||1; if(!m.anni[y]) m.anni[y]=[];
+      m.anni[y].push(x);
+    });
+  });
+}
+function slug(s){
+  return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40) || "esercizi";
+}
+function validaImport(src, materiaDefault, annoDefault){
+  var err=[], obj=src;
+  if(Array.isArray(obj)) obj = {items:obj};
+  if(!obj || typeof obj!=="object") return {errori:["Il file deve contenere un oggetto JSON oppure un elenco di esercizi."]};
+  var livelli;
+  if(Array.isArray(obj.livelli)) livelli = obj.livelli;
+  else if(Array.isArray(obj.items)) livelli = [{n:"Livello 1 - Esercizi importati", d:"Batteria importata.", items:obj.items}];
+  else return {errori:["Manca l’elenco degli esercizi: serve «livelli» oppure «items»."]};
+  if(!livelli.length) err.push("«livelli» è vuoto.");
+  var materia = String(obj.materia||materiaDefault);
+  if(!MATERIE.some(function(m){ return m.id===materia; })) err.push("Materia sconosciuta: "+materia+".");
+  var anno = Number(obj.anno||annoDefault);
+  if(ANNI.indexOf(anno)<0) err.push("Anno non valido: "+obj.anno+".");
+  var titolo = String(obj.titolo || "Esercizi importati "+new Date().toLocaleDateString("it-IT"));
+  var out = {
+    id: String(obj.id || "imp-"+slug(titolo)+"-"+Date.now().toString(36)),
+    titolo:titolo, sommario:String(obj.sommario||"Batteria di esercizi importata."), materia:materia, anno:anno, importato:true,
+    pillole: Array.isArray(obj.pillole)?obj.pillole.filter(function(p){ return p&&p.t&&p.c; }):[],
+    formule: Array.isArray(obj.formule)?obj.formule.filter(function(f){ return f&&f.n&&f.f; }):[],
+    esempi:  Array.isArray(obj.esempi)?obj.esempi.filter(function(e){ return e&&e.t&&Array.isArray(e.passi)&&e.r; }):[],
+    risorse: Array.isArray(obj.risorse)?obj.risorse.filter(function(r){ return r&&/^https?:\/\//.test(r.u||"")&&r.t; })
+              .map(function(r){ return {t:String(r.t), u:String(r.u), f:String(r.f||"Link")}; }):[],
+    livelli:[]
+  };
+  livelli.forEach(function(l, li){
+    if(!l || !Array.isArray(l.items) || !l.items.length){ err.push("Livello "+(li+1)+": manca «items» o è vuoto."); return; }
+    var lv = { n:String(l.n||("Livello "+(li+1))), d:String(l.d||""), items:[] };
+    l.items.forEach(function(it, ii){
+      var tag="Livello "+(li+1)+", esercizio "+(ii+1)+": ";
+      if(!it || typeof it!=="object" || !it.q){ err.push(tag+"manca il testo «q»."); return; }
+      var o = { q:String(it.q), tipo: it.tipo==="scelta"?"scelta":"aperta",
+                spieg:String(it.spieg||"Nessuna spiegazione fornita per questo esercizio.") };
+      if(o.tipo==="scelta"){
+        if(!Array.isArray(it.opz) || it.opz.length<2){ err.push(tag+"servono almeno due opzioni in «opz»."); return; }
+        o.opz = it.opz.map(String); o.ok = Number(it.ok);
+        if(!(Number.isInteger(o.ok) && o.ok>=0 && o.ok<o.opz.length)){ err.push(tag+"«ok» deve essere l’indice (da 0) dell’opzione corretta."); return; }
+      } else {
+        if(it.num && typeof it.num.v==="number"){
+          o.num = {v:it.num.v, tol: typeof it.num.tol==="number" ? it.num.tol : 0.01};
+          if(it.num.u) o.num.u = String(it.num.u);
+        }
+        var sol = Array.isArray(it.sol) ? it.sol.map(String).filter(Boolean) : (it.sol!=null ? [String(it.sol)] : []);
+        if(!sol.length && o.num) sol=[String(o.num.v).replace(".",",")];
+        if(!sol.length){ err.push(tag+"serve «sol» (elenco di risposte accettate) oppure «num»."); return; }
+        o.sol = sol;
+      }
+      if(Array.isArray(it.guida) && it.guida.length){
+        o.guida = it.guida.filter(function(p){ return p&&p.s&&p.r; }).map(normPasso);
+        if(!o.guida.length) delete o.guida;
+      }
+      lv.items.push(o);
+    });
+    out.livelli.push(lv);
+  });
+  if(err.length) return {errori:err};
+  return {arg:out, n:out.livelli.reduce(function(a,l){ return a+l.items.length; },0)};
+}
+function htmlImport(){
+  var imp = caricaImportati();
+  var h = '<section class="scheda"><div class="scheda-in sezione"><h2>Esercizi tuoi</h2>'+
+    '<p class="sez-sub">Importa una batteria di esercizi in formato JSON: diventa un argomento dell’indice, con palestra e svolgimento guidato. Resta salvata in questo browser.</p>'+
+    '<div class="importa">'+
+    '<div class="campo" style="align-items:center;gap:14px">'+
+    '<label>Materia, se il file non la indica <select id="imp-materia">'+MATERIE.map(function(m){ return '<option value="'+m.id+'">'+esc(m.nome)+'</option>'; }).join("")+'</select></label>'+
+    '<label>Anno <select id="imp-anno">'+ANNI.map(function(y){ return '<option value="'+y+'">'+y+'º</option>'; }).join("")+'</select></label>'+
+    '<label>File <input type="file" id="imp-file" accept=".json,application/json"></label></div>'+
+    '<textarea id="imp-testo" placeholder="…oppure incolla qui il testo JSON" aria-label="JSON da importare"></textarea>'+
+    '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="imp-vai">Importa</button>'+
+    '<details class="modello"><summary>Mostra un file di esempio</summary><pre>'+esc(JSON.stringify(MODELLO_IMPORT,null,2))+'</pre></details></div>'+
+    '<div class="esito-imp" id="imp-esito" hidden></div></div>';
+  if(imp.length){
+    h += '<div class="importati">';
+    imp.forEach(function(x){
+      var n = x.livelli.reduce(function(a,l){ return a+l.items.length; },0);
+      var m = MATERIE.filter(function(mm){ return mm.id===x.materia; })[0];
+      h += '<div class="importato-riga"><span class="etichetta">'+esc(m?m.nome:x.materia)+' · '+x.anno+'º</span>'+
+           '<span class="t">'+esc(x.titolo)+' <small style="color:var(--muted)">('+n+' esercizi)</small></span>'+
+           '<button class="btn piccolo neutro" type="button" data-vai="'+esc(x.id)+'">Apri</button>'+
+           '<button class="btn piccolo ghost" type="button" data-rimuovi="'+esc(x.id)+'">Rimuovi</button></div>';
+    });
+    h += '</div>';
+  }
+  h += '</div></section>';
+  return h;
+}
+function collegaImport(){
+  var vai=document.getElementById("imp-vai"); if(!vai) return;
+  var file=document.getElementById("imp-file"), testo=document.getElementById("imp-testo"), esito=document.getElementById("imp-esito");
+  file.addEventListener("change", function(){
+    var f=file.files && file.files[0]; if(!f) return;
+    var rd=new FileReader(); rd.onload=function(){ testo.value=String(rd.result||""); }; rd.readAsText(f);
+  });
+  vai.addEventListener("click", function(){
+    var raw=testo.value.trim(); esito.hidden=false;
+    if(!raw){ esito.className="esito-imp no"; esito.textContent="Scegli un file oppure incolla il JSON."; return; }
+    var obj; try{ obj=JSON.parse(raw); }catch(e){ esito.className="esito-imp no"; esito.textContent="JSON non valido: "+e.message; return; }
+    var v = validaImport(obj, document.getElementById("imp-materia").value, Number(document.getElementById("imp-anno").value));
+    if(v.errori){ esito.className="esito-imp no"; esito.innerHTML="Importazione non riuscita:<br>"+v.errori.slice(0,8).map(esc).join("<br>"); return; }
+    var lista=caricaImportati();
+    if(trovaArgomento(v.arg.id) || lista.some(function(x){ return x.id===v.arg.id; })) v.arg.id += "-"+Date.now().toString(36);
+    lista.push(v.arg); salvaImportati(lista); montaImportati(); renderRail(); renderHome();
+    var e2=document.getElementById("imp-esito");
+    if(e2){ e2.hidden=false; e2.className="esito-imp ok"; e2.textContent="Importati "+v.n+" esercizi in «"+v.arg.titolo+"». Lo trovi nell’indice."; }
+  });
+  Array.prototype.forEach.call($main.querySelectorAll("[data-rimuovi]"), function(b){
+    b.addEventListener("click", function(){
+      var id=b.getAttribute("data-rimuovi");
+      if(!confirm("Rimuovere questa batteria importata e i suoi progressi?")) return;
+      salvaImportati(caricaImportati().filter(function(x){ return x.id!==id; }));
+      delete S.prog[id]; salvaProgressi(); montaImportati(); renderRail(); renderHome();
+    });
+  });
+}
+
 /* =================== avvio =================== */
 document.getElementById("tgl-indice").addEventListener("click", function(){
   $rail.classList.toggle("aperto");
 });
+document.getElementById("vai-home").addEventListener("click", function(){
+  S.vista="home"; S.argomento=null; S.materia=null;
+  renderRail(); renderHome();
+  window.scrollTo({top:0, behavior:"smooth"});
+});
 
 S.prog = caricaLocale();
+montaImportati();
 renderRail();
 renderHome();
 

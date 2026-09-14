@@ -15,10 +15,10 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 
 | File | Ruolo | Nel repo |
 |---|---|---|
-| `index.html` | motore del sito (stili, indice, quiz, correttore, revisione). Formato claude.ai: **senza** i tag `<!doctype>`, `<html>`, `<head>`, `<body>` | sì |
+| `index.html` | motore del sito (stili, indice, quiz, correttore, revisione, svolgimento guidato, importazione). Formato claude.ai: **senza** i tag `<!doctype>`, `<html>`, `<head>`, `<body>` | sì |
 | `contenuti-matematica.js` | contenuti di matematica | sì |
 | `contenuti-fisica.js` | contenuti di fisica | sì |
-| `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic | no (solo locale) |
+| `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic; **va rigenerato** da `index.html` dopo ogni modifica al motore (testa fino a `<title>` + `index.html` + `</body></html>`) | no (solo locale) |
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
 | `CLAUDE.md` | queste istruzioni di progetto | sì |
 | `.gitignore` | esclude i due file solo locali | sì |
@@ -44,7 +44,8 @@ Lo schema completo (argomento + i tre tipi di esercizio) è documentato **in tes
 
 Ogni argomento contiene: 7–10 pillole di teoria, formulario in LaTeX (reso con MathJax),
 3 esempi svolti passo per passo, 4–6 link a risorse gratuite (YouMath, Edutecnica) e
-**3 batterie da 10 esercizi** a difficoltà crescente, ognuno con soluzione argomentata.
+**3 batterie da 10 esercizi** a difficoltà crescente, ognuno con soluzione argomentata e
+con una **guida allo svolgimento** (campo `guida`: passi `{s, r, k}`, vedi sotto).
 
 I tre tipi di esercizio sono: risposta aperta testuale, risposta aperta numerica con
 tolleranza dichiarata, scelta multipla.
@@ -68,8 +69,26 @@ Per estendere:
   il secondo genera una spiegazione più estesa (che cosa chiede l'esercizio, la regola,
   lo svolgimento passo per passo, dove nasce l'errore, un esercizio simile da provare).
   Fuori da claude.ai compare un messaggio di ripiego che rimanda a teoria, esempi e link.
-- Il livello successivo si sblocca con almeno **6 risposte corrette su 10**. Rifacendo un
-  livello gli esercizi restano gli stessi, così si lavora sugli errori.
+- Il livello successivo si sblocca con almeno **6 risposte corrette su 10** (per batterie di
+  altra lunghezza, il 60 % arrotondato per eccesso). Rifacendo un livello gli esercizi
+  restano gli stessi, così si lavora sugli errori.
+- **Svolgimento guidato**: per ogni esercizio lo studente può farsi guidare un passaggio
+  alla volta. Il sistema mostra il suggerimento (`s`, che cosa scrivere senza rivelare il
+  risultato), lo studente scrive il passaggio, poi compare il passaggio atteso (`r`) con un
+  controllo morbido (le chiavi `k` o l'ultimo numero di `r` devono comparire nel testo
+  scritto) e il suggerimento successivo, fino alla risposta finale. È raggiungibile dalla
+  pagina dell'argomento (griglia degli esercizi), dentro il quiz (il pulsante «Svolgimento
+  guidato» esclude l'esercizio dal punteggio, che resta segnato «con la guida» nella
+  revisione) e dalla revisione («Rifallo passo per passo»). Se un esercizio non ha `guida`,
+  la pagina la ricava dalle frasi della spiegazione; su claude.ai è possibile chiederne una
+  più dettagliata al modello (`sample`).
+- **Importazione di esercizi**: dalla pagina iniziale («Esercizi tuoi») si carica o incolla
+  un JSON con un argomento completo (stesso schema dei file dei contenuti, con `materia` e
+  `anno`), oppure `{titolo, materia, anno, items:[...]}`, oppure un semplice elenco di
+  esercizi. Le batterie importate vengono validate, salvate in `localStorage` (chiave
+  `quaderno-quadretti-importati`), montate nell'indice come argomenti con etichetta «tuo» e
+  hanno palestra, revisione e svolgimento guidato come gli altri. Un modello di file è
+  mostrato nella pagina (`MODELLO_IMPORT` in `index.html`).
 - I progressi si salvano in `localStorage`, così la pagina resta condivisibile con un link
   e senza account. La capability `db` di claude.ai **non** va ridichiarata: rende
   l'Artifact interno all'organizzazione e non condivisibile. `claude.use("db")` che
@@ -85,7 +104,8 @@ per esercizio.
 ## Verifiche obbligatorie prima di ogni push
 
 1. **Controllo strutturale** di tutti gli esercizi nuovi: testo, soluzione dichiarata,
-   spiegazione, coerenza delle opzioni a scelta multipla.
+   spiegazione, coerenza delle opzioni a scelta multipla, guida con 2–6 passi il cui ultimo
+   passo contiene la risposta finale.
 2. **Test del correttore**: ogni variante di risposta dichiarata viene accettata, nessuna
    opzione errata viene accettata, la risposta vuota non passa.
 3. **Verifica simbolica con SymPy** di tutte le identità algebriche e delle scomposizioni;
@@ -93,6 +113,9 @@ per esercizio.
 4. **Controllo dei link** con `curl` (stato 200). YouMath ha cambiato gli indirizzi delle
    lezioni e a volte rifiuta le connessioni automatiche: in quel caso confermare la pagina
    almeno tramite l'indice di un motore di ricerca.
+
+Le verifiche 1 e 2 (più il controllo dei backslash LaTeX e delle guide) sono automatizzate
+in `verifica.js`: `node verifica.js .` dalla cartella del progetto.
 
 Strumenti sulla macchina (settembre 2026): Node.js LTS 24 in `C:\Program Files\nodejs`
 (installato con winget; le shell aperte prima dell'installazione non lo vedono nel PATH),
