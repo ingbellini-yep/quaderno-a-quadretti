@@ -1,0 +1,975 @@
+<title>Quaderno a Quadretti</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Asap:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --ground:#F2F5F9; --grid:#E1E8F1; --surface:#FFFFFF; --surface-2:#F7F9FC;
+  --ink:#141C27; --ink-2:#37475C; --muted:#64798F; --line:#D7E0EB; --line-strong:#B9C7D8;
+  --mat:#2C5AA0; --mat-soft:#E7EEF9;
+  --fis:#A85A2E; --fis-soft:#F8EDE5;
+  --ok:#16785A; --ok-soft:#E1F1EA;
+  --warn:#9E6712; --warn-soft:#F8EEDC;
+  --err:#A8353A; --err-soft:#F8E6E7;
+  --shadow:0 1px 2px rgba(20,28,39,.06), 0 6px 18px -10px rgba(20,28,39,.22);
+  --radius:10px;
+  --on-accent:#FFFFFF;
+  --accent:var(--mat); --accent-soft:var(--mat-soft);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D131A; --grid:#18222D; --surface:#151E28; --surface-2:#1B2631;
+    --ink:#E5ECF4; --ink-2:#BCC9D8; --muted:#8798AB; --line:#27333F; --line-strong:#3A4957;
+    --mat:#83AAEC; --mat-soft:#1B2940;
+    --fis:#E1966E; --fis-soft:#37261C;
+    --ok:#5BC59B; --ok-soft:#143026;
+    --warn:#DFAE55; --warn-soft:#332715;
+    --err:#E58185; --err-soft:#3A1D1F;
+    --on-accent:#0B1119;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D131A; --grid:#18222D; --surface:#151E28; --surface-2:#1B2631;
+  --ink:#E5ECF4; --ink-2:#BCC9D8; --muted:#8798AB; --line:#27333F; --line-strong:#3A4957;
+  --mat:#83AAEC; --mat-soft:#1B2940;
+  --fis:#E1966E; --fis-soft:#37261C;
+  --ok:#5BC59B; --ok-soft:#143026;
+  --warn:#DFAE55; --warn-soft:#332715;
+  --err:#E58185; --err-soft:#3A1D1F;
+  --on-accent:#0B1119;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Asap","Segoe UI",system-ui,-apple-system,sans-serif;
+  font-size:16px; line-height:1.55;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+h1,h2,h3,h4{font-family:"Spectral",Georgia,"Times New Roman",serif; font-weight:600; text-wrap:balance; margin:0}
+a{color:var(--accent)}
+button{font:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* ---------- intestazione ---------- */
+.testata{
+  position:sticky; top:0; z-index:40;
+  background:var(--surface); border-bottom:1px solid var(--line);
+}
+.testata-in{
+  max-width:1280px; margin:0 auto; padding-block:12px; padding-left:20px; padding-right:20px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.marchio{display:flex; align-items:baseline; gap:10px; margin-right:auto}
+.marchio b{font-family:"Spectral",serif; font-size:21px; font-weight:700; letter-spacing:-.01em}
+.marchio span{font-size:12px; color:var(--muted); letter-spacing:.09em; text-transform:uppercase}
+.badge-sync{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  border:1px solid var(--line); border-radius:999px; padding:3px 10px; white-space:nowrap;
+}
+.badge-sync.on{color:var(--ok); border-color:var(--ok)}
+.btn-indice{display:none}
+
+/* ---------- impianto ---------- */
+.impianto{max-width:1280px; margin:0 auto; display:grid; grid-template-columns:288px minmax(0,1fr); gap:28px;
+  padding-left:20px; padding-right:20px; padding-block:26px; align-items:start}
+
+/* ---------- indice laterale ---------- */
+.rail{position:sticky; top:74px; display:flex; flex-direction:column; gap:18px}
+.rail-blocco{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+.rail-testa{display:flex; align-items:center; gap:9px; padding:11px 14px; border-bottom:1px solid var(--line); background:var(--surface-2)}
+.rail-testa .sigla{
+  width:24px; height:24px; display:grid; place-items:center; border-radius:6px;
+  font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:500; color:#fff;
+}
+.rail-testa h3{font-size:14px; letter-spacing:.06em; text-transform:uppercase; font-family:"Asap",sans-serif; font-weight:600}
+.rail-anno{padding:9px 14px 3px; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.voce{
+  width:100%; text-align:left; background:none; border:0; border-left:3px solid transparent;
+  padding:8px 14px 8px 11px; display:flex; gap:8px; align-items:flex-start; color:var(--ink-2); font-size:14.5px;
+}
+.voce:hover{background:var(--surface-2); color:var(--ink)}
+.voce.attiva{background:var(--accent-soft); border-left-color:var(--accent); color:var(--ink); font-weight:500}
+.voce .txt{flex:1; line-height:1.35}
+.punti{display:flex; gap:3px; padding-top:5px; flex-shrink:0}
+.punto{width:7px; height:7px; border-radius:50%; border:1.5px solid var(--line-strong); background:transparent}
+.punto.fatto{background:var(--ok); border-color:var(--ok)}
+.punto.provato{background:var(--warn); border-color:var(--warn)}
+.rail-nota{padding:8px 14px 12px; font-size:12.5px; color:var(--muted); border-top:1px dashed var(--line); margin-top:6px}
+
+/* ---------- contenuto ---------- */
+.main{min-width:0; display:flex; flex-direction:column; gap:22px}
+.scheda{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
+.scheda-in{padding:22px 24px}
+.occhiello{font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); font-weight:600; font-family:"Asap",sans-serif}
+
+.copertina{padding:26px 24px; border-left:4px solid var(--accent)}
+.copertina h1{font-size:clamp(25px,3.6vw,34px); line-height:1.15; margin:6px 0 10px}
+.copertina p{margin:0; color:var(--ink-2); max-width:62ch}
+
+.sezione > h2{
+  font-size:19px; margin-bottom:2px;
+  display:flex; align-items:center; gap:10px;
+}
+.sezione > h2::after{content:""; flex:1; height:1px; background:var(--line)}
+.sez-sub{color:var(--muted); font-size:13.5px; margin:2px 0 16px}
+
+.pillole{display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+.pillola{background:var(--surface); padding:16px 18px}
+.pillola h4{font-size:15.5px; margin-bottom:5px; font-family:"Asap",sans-serif; font-weight:600}
+.pillola p{margin:0; font-size:14.5px; color:var(--ink-2)}
+
+.formulario{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+.formula{background:var(--surface); display:grid; grid-template-columns:minmax(150px,auto) 1fr; gap:14px; align-items:center; padding:12px 18px}
+.formula .nome{font-size:13px; color:var(--muted); letter-spacing:.03em}
+.formula .corpo{overflow-x:auto}
+
+.esempio{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--surface)}
+.esempio + .esempio{margin-top:12px}
+.esempio .consegna{background:var(--surface-2); padding:12px 18px; border-bottom:1px solid var(--line); font-weight:500}
+.esempio ol{margin:0; padding:14px 18px 14px 36px; display:grid; gap:7px; color:var(--ink-2); font-size:14.5px}
+.esempio .esito{padding:11px 18px; border-top:1px dashed var(--line); background:var(--ok-soft); color:var(--ink);
+  display:flex; gap:9px; align-items:center; flex-wrap:wrap}
+.esempio .esito b{font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--ok)}
+
+.risorse{display:grid; gap:8px}
+.risorsa{display:flex; gap:12px; align-items:baseline; padding:10px 14px; border:1px solid var(--line);
+  border-radius:8px; background:var(--surface); text-decoration:none; color:var(--ink)}
+.risorsa:hover{border-color:var(--accent)}
+.risorsa .fonte{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  border:1px solid var(--line); border-radius:4px; padding:1px 6px; flex-shrink:0}
+.risorsa .t{flex:1; font-size:14.5px}
+.risorsa .frec{color:var(--muted)}
+
+/* ---------- livelli / palestra ---------- */
+.livelli{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px}
+.livello{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:16px 17px;
+  display:flex; flex-direction:column; gap:9px}
+.livello.bloccato{background:var(--surface-2); color:var(--muted)}
+.livello .grado{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.livello h4{font-size:17px}
+.livello p{margin:0; font-size:13.5px; color:var(--muted); flex:1}
+.stato{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px;
+  align-self:flex-start; font-variant-numeric:tabular-nums}
+.stato.ok{background:var(--ok-soft); color:var(--ok)}
+.stato.parz{background:var(--warn-soft); color:var(--warn)}
+.stato.chiuso{background:var(--surface-2); color:var(--muted); border:1px solid var(--line)}
+
+.btn{border:1px solid var(--accent); background:var(--accent); color:var(--on-accent); padding:9px 16px;
+  border-radius:8px; font-weight:600; font-size:14.5px}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45; cursor:not-allowed; filter:none}
+.btn.ghost{background:transparent; color:var(--accent)}
+.btn.neutro{background:var(--surface); border-color:var(--line-strong); color:var(--ink)}
+.btn.piccolo{padding:6px 12px; font-size:13.5px}
+
+/* ---------- quiz ---------- */
+.quiz{max-width:820px; margin:0 auto; width:100%}
+.quiz-testa{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:16px 22px; border-bottom:1px solid var(--line)}
+.quiz-testa .qt{flex:1; min-width:180px}
+.quiz-testa h2{font-size:17px}
+.quiz-testa .sub{font-size:12.5px; color:var(--muted)}
+.passi{display:flex; gap:5px; flex-wrap:wrap}
+.passo{width:22px; height:5px; border-radius:3px; background:var(--line)}
+.passo.fatto{background:var(--accent)}
+.passo.ora{background:var(--ink)}
+.domanda{padding:26px 24px}
+.domanda .num{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); letter-spacing:.08em}
+.domanda .testo{font-size:19px; line-height:1.5; margin:8px 0 20px}
+.campo{display:flex; gap:10px; flex-wrap:wrap}
+.campo input[type=text]{
+  flex:1; min-width:200px; padding:11px 14px; border:1.5px solid var(--line-strong); border-radius:8px;
+  background:var(--surface-2); color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:16px;
+}
+.campo input[type=text]:focus{border-color:var(--accent); outline:none; background:var(--surface)}
+.opzioni{display:grid; gap:9px}
+.opz{display:flex; gap:11px; align-items:flex-start; padding:12px 15px; border:1.5px solid var(--line);
+  border-radius:8px; background:var(--surface-2); cursor:pointer}
+.opz:hover{border-color:var(--line-strong)}
+.opz.sel{border-color:var(--accent); background:var(--accent-soft)}
+.opz input{margin-top:5px; accent-color:var(--accent)}
+.azioni{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; align-items:center}
+.suggerimento{font-size:13px; color:var(--muted); margin-top:14px}
+
+/* ---------- esito ---------- */
+.punteggio{display:flex; align-items:center; gap:22px; padding:22px 24px; flex-wrap:wrap; border-bottom:1px solid var(--line)}
+.voto{font-family:"IBM Plex Mono",monospace; font-size:38px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1}
+.voto small{font-size:19px; color:var(--muted)}
+.punteggio .msg{flex:1; min-width:220px}
+.punteggio .msg h2{font-size:20px; margin-bottom:3px}
+.punteggio .msg p{margin:0; color:var(--ink-2); font-size:14.5px}
+.revisione{display:grid; gap:14px; padding:20px 24px}
+.rev{border:1px solid var(--line); border-left:3px solid var(--line-strong); border-radius:8px; background:var(--surface); overflow:hidden}
+.rev.giusta{border-left-color:var(--ok)}
+.rev.sbagliata{border-left-color:var(--err)}
+.rev-testa{padding:13px 16px; display:flex; gap:11px; align-items:flex-start}
+.rev-testa .n{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); padding-top:3px}
+.rev-testa .q{flex:1; font-size:15.5px}
+.esitino{font-size:11.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; padding:2px 8px; border-radius:999px; white-space:nowrap}
+.esitino.ok{background:var(--ok-soft); color:var(--ok)}
+.esitino.no{background:var(--err-soft); color:var(--err)}
+.rev-corpo{padding:0 16px 14px 16px; display:grid; gap:10px}
+.riga-risp{display:grid; grid-template-columns:auto 1fr; gap:8px 12px; font-size:14px; align-items:baseline}
+.riga-risp dt{color:var(--muted); font-size:12px; letter-spacing:.05em; text-transform:uppercase}
+.riga-risp dd{margin:0; font-family:"IBM Plex Mono",monospace}
+.spiegazione{background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:12px 15px; font-size:14.5px; color:var(--ink-2)}
+.spiegazione strong{color:var(--ink)}
+.capito{display:flex; gap:9px; align-items:center; flex-wrap:wrap; font-size:13.5px; color:var(--muted)}
+.approfondimento{background:var(--accent-soft); border:1px dashed var(--accent); border-radius:8px; padding:13px 15px; font-size:14.5px; white-space:pre-wrap}
+.chiuso-ok{color:var(--ok); font-weight:600; font-size:13.5px}
+
+.vuoto{padding:34px 24px; text-align:center; color:var(--muted)}
+.vuoto h3{font-size:18px; color:var(--ink); margin-bottom:6px}
+
+.cruscotto{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+.tassello{background:var(--surface); padding:15px 17px}
+.tassello .k{font-family:"IBM Plex Mono",monospace; font-size:27px; font-variant-numeric:tabular-nums; line-height:1.1}
+.tassello .e{font-size:12px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-top:4px}
+
+.come-si-usa{display:grid; gap:9px; counter-reset:passo}
+.come-si-usa li{font-size:14.5px; color:var(--ink-2)}
+
+@media (max-width:900px){
+  .impianto{grid-template-columns:minmax(0,1fr); gap:18px}
+  .rail{position:static; display:none}
+  .rail.aperto{display:flex}
+  .btn-indice{display:inline-flex}
+  .testata-in{padding-block:10px}
+}
+
+/* ---------- refresh: studio quest ---------- */
+:root{
+  --ground:#f7f5ff; --surface:#fff; --surface-2:#f4f2ff; --ink:#251b3d; --ink-2:#5c5278;
+  --muted:#786f91; --line:#e3dff2; --line-strong:#c9c1e4; --mat:#7157f6; --mat-soft:#ede9ff;
+  --fis:#ff6b4a; --fis-soft:#fff0eb; --ok:#18a879; --ok-soft:#e5f8f1; --warn:#ee9b19;
+  --warn-soft:#fff6df; --err:#e14e6a; --err-soft:#ffebf0; --radius:20px;
+  --shadow:0 12px 32px -20px rgba(66,42,123,.28);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#171326;--surface:#211b35;--surface-2:#29213f;--ink:#f5f0ff;--ink-2:#d2c9e7;--muted:#aaa0c4;--line:#40355f;--line-strong:#5c4d7f;--mat:#a895ff;--mat-soft:#332956;--fis:#ff9a83;--fis-soft:#493029;--ok:#55d6a6;--ok-soft:#193d35;--warn:#ffc95c;--warn-soft:#4a3a1f;--err:#ff8ca5;--err-soft:#4b2434;--shadow:0 12px 32px -20px #080510}}
+:root[data-theme="dark"]{--ground:#171326;--surface:#211b35;--surface-2:#29213f;--ink:#f5f0ff;--ink-2:#d2c9e7;--muted:#aaa0c4;--line:#40355f;--line-strong:#5c4d7f;--mat:#a895ff;--mat-soft:#332956;--fis:#ff9a83;--fis-soft:#493029;--ok:#55d6a6;--ok-soft:#193d35;--warn:#ffc95c;--warn-soft:#4a3a1f;--err:#ff8ca5;--err-soft:#4b2434;--shadow:0 12px 32px -20px #080510}
+body{font-family:"Asap","Segoe UI",system-ui,sans-serif;background-color:var(--ground);background-image:radial-gradient(circle at 8% 0%,rgba(113,87,246,.13),transparent 24rem),radial-gradient(circle at 96% 18%,rgba(255,107,74,.12),transparent 27rem),linear-gradient(rgba(113,87,246,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(113,87,246,.035) 1px,transparent 1px);background-size:auto,auto,28px 28px,28px 28px}
+h1,h2,h3,h4{font-family:"Asap","Segoe UI",sans-serif;font-weight:700;letter-spacing:-.035em}
+.testata{background:rgba(255,255,255,.84);backdrop-filter:blur(16px);border-bottom:1px solid rgba(227,223,242,.7)}
+.marchio{align-items:center}.marchio b{font-family:"Asap",sans-serif;font-size:20px;letter-spacing:-.045em}.marchio b:before{content:"✦";display:inline-grid;place-items:center;width:30px;height:30px;margin-right:9px;border-radius:10px;background:linear-gradient(135deg,#765cf7,#aa69ff);color:white;font-size:16px;box-shadow:0 5px 12px rgba(113,87,246,.3)}
+.marchio span{font-weight:700;color:#877da5;font-size:10px}.badge-sync{background:#fff;border-color:#e6e0f3;color:#786f91;box-shadow:0 3px 10px rgba(66,42,123,.05)}
+.impianto{max-width:1360px;grid-template-columns:268px minmax(0,1fr);gap:24px;padding-block:28px}.rail{top:79px;gap:14px}.rail-blocco{border:0;border-radius:18px;box-shadow:var(--shadow);overflow:hidden}.rail-testa{padding:12px 14px;background:linear-gradient(110deg,#f5f2ff,#fff);border-bottom:1px solid var(--line)}.rail-testa .sigla{width:29px;height:29px;border-radius:10px;font-size:15px;box-shadow:0 5px 10px rgba(66,42,123,.15)}.rail-testa h3{font-size:12px}.rail-anno{font-size:10px;padding-top:12px}.voce{margin:2px 8px;width:calc(100% - 16px);border-radius:10px;border-left:0;padding:8px 10px;font-size:13.5px;transition:transform .18s ease,background .18s ease}.voce:hover{transform:translateX(3px)}.voce.attiva{border-left:0;box-shadow:inset 3px 0 var(--accent);font-weight:700}.rail-nota{font-size:11.5px}
+.main{gap:18px}.scheda{border:0;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.scheda-in{padding:25px}.copertina{position:relative;overflow:hidden;isolation:isolate;padding:35px 36px;border-left:0;background:linear-gradient(130deg,#fff 0%,#f0ecff 55%,#fff4ea 100%)}.copertina:before,.copertina:after{content:"";position:absolute;border-radius:50%;z-index:-1}.copertina:before{width:230px;height:230px;right:-72px;top:-108px;background:linear-gradient(135deg,#ffbd55,#ff704d);opacity:.9}.copertina:after{width:185px;height:185px;right:116px;bottom:-132px;background:#8b75ff;opacity:.3}.copertina h1{max-width:720px;font-size:clamp(32px,4.2vw,50px);line-height:1.02;margin:8px 0 13px}.copertina p{font-size:16px;max-width:650px}.occhiello{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.75);font-size:10.5px;box-shadow:0 2px 8px rgba(66,42,123,.06)}.occhiello:before{content:"●";font-size:9px}
+.sezione>h2{font-size:22px}.sez-sub{font-size:14px}.sezione>h2:after{height:2px;background:linear-gradient(90deg,var(--line),transparent)}.pillole{gap:12px;background:transparent;border:0;overflow:visible}.pillola{border:1px solid var(--line);border-radius:16px;padding:18px;background:linear-gradient(145deg,#fff,#fbfaff);transition:transform .2s ease,box-shadow .2s ease}.pillola:hover{transform:translateY(-4px);box-shadow:var(--shadow)}.pillola h4{font-size:16px}.formula{padding:15px 18px}.esempio{border-radius:15px}.esempio .consegna{font-weight:700}.livello{border:1px solid var(--line);border-radius:17px;padding:18px;background:linear-gradient(150deg,#fff,#fcfbff);transition:transform .2s ease,box-shadow .2s ease}.livello:not(.bloccato):hover{transform:translateY(-4px);box-shadow:var(--shadow)}.livello .grado{font-weight:700;color:var(--accent)}.livello h4{font-size:18px}.btn{border:0;border-radius:12px;padding:10px 17px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent),#ff79c6 25%));box-shadow:0 6px 12px -7px var(--accent);transition:transform .18s ease,box-shadow .18s ease}.btn:hover{filter:none;transform:translateY(-2px);box-shadow:0 10px 18px -8px var(--accent)}.btn.ghost{background:var(--accent-soft);box-shadow:none}.btn.neutro{border:1px solid var(--line);box-shadow:none}.btn.piccolo{border-radius:10px}.stato{font-weight:700}.cruscotto{gap:12px;background:transparent;border:0;overflow:visible}.tassello{border:1px solid var(--line);border-radius:16px;padding:17px;background:#fff}.tassello .k{font-size:29px;color:var(--accent);font-weight:700}.tassello .e{font-weight:700;font-size:10px}.quiz{border-radius:22px}.quiz-testa{padding:18px 24px;background:linear-gradient(90deg,#faf9ff,#fff)}.passo{height:7px;width:24px;background:#ebe7f7}.passo.fatto{background:var(--accent)}.passo.ora{background:#ffae3d;animation:pulse 1.3s ease-in-out infinite}.domanda{padding:30px}.domanda .testo{font-weight:600}.opz{border-radius:13px;background:#fff;transition:transform .15s ease,border-color .15s ease}.opz:hover{transform:translateX(4px);border-color:var(--accent)}.campo input[type=text]{border-radius:13px;background:#faf9ff}.punteggio{background:linear-gradient(120deg,#f2edff,#fff7ed)}.voto{font-size:48px}.rev{border-radius:14px}.risorsa{border-radius:13px;transition:transform .18s ease}.risorsa:hover{transform:translateX(4px)}
+@keyframes pulse{50%{transform:scaleX(1.12);opacity:.65}}
+.mission-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.mission-card{position:relative;overflow:hidden;padding:25px;border-radius:20px;background:linear-gradient(135deg,#7057ee,#a169f5);color:#fff;box-shadow:0 14px 28px -18px #6244d2}.mission-card:after{content:"✦";position:absolute;right:23px;top:-15px;font-size:112px;opacity:.16}.mission-kicker{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.82}.mission-card h2{font-size:27px;margin:6px 0}.mission-card p{max-width:42ch;margin:0 0 16px;opacity:.92}.mission-card .btn{background:#fff;color:#5e48cd;box-shadow:none}.mission-card .btn:hover{box-shadow:none}.orbit-card{display:flex;align-items:center;gap:18px;padding:17px 19px;border:1px solid var(--line);border-radius:20px;background:#fff}.orbit{width:106px;height:106px;flex:none;border-radius:50%;background:conic-gradient(var(--accent) var(--percent),#ece9f7 0);display:grid;place-items:center;position:relative;animation:appear .7s cubic-bezier(.2,.8,.2,1)}.orbit:before{content:"";position:absolute;inset:10px;border-radius:50%;background:white}.orbit b,.orbit span{position:relative;z-index:1}.orbit b{font-size:24px}.orbit span{font-size:10px;font-weight:700;line-height:1.1;text-align:center;color:var(--muted)}.orbit-copy strong{display:block;font-size:17px}.orbit-copy p{margin:4px 0 0;color:var(--muted);font-size:13px}.subject-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.subject-node{position:relative;display:flex;align-items:center;gap:11px;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer;text-align:left;transition:transform .2s ease,box-shadow .2s ease}.subject-node:hover{transform:translateY(-3px);box-shadow:var(--shadow)}.subject-icon{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;color:white;font-size:19px;font-weight:700}.subject-node b{display:block;font-size:14px}.subject-node small{display:block;color:var(--muted);font-size:11.5px}.mini-bar{height:5px;margin-top:5px;border-radius:9px;background:#ece9f7;overflow:hidden}.mini-bar i{display:block;height:100%;border-radius:inherit;background:var(--node-color);transition:width .7s ease}.home-tutorial{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;counter-reset:guide}.home-tutorial li{list-style:none;position:relative;padding:13px 12px 12px 43px;border-radius:14px;background:var(--surface-2);font-size:13px;color:var(--ink-2)}.home-tutorial li:before{counter-increment:guide;content:counter(guide);position:absolute;left:12px;top:12px;width:22px;height:22px;border-radius:8px;background:var(--accent);color:white;display:grid;place-items:center;font-size:12px;font-weight:700}.study-tip{display:flex;gap:12px;align-items:center;padding:14px 16px;margin-top:16px;border-radius:14px;background:var(--warn-soft);font-size:13.5px;color:#76541b}.study-tip span{font-size:25px}.celebrate{animation:appear .45s ease-out}@keyframes appear{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media (max-width:700px){.impianto{padding:16px;gap:15px}.copertina{padding:28px 22px}.mission-grid{grid-template-columns:1fr}.subject-map{grid-template-columns:1fr}.home-tutorial{grid-template-columns:1fr 1fr}.orbit-card{padding:14px}.orbit{width:82px;height:82px}.scheda-in{padding:20px}.domanda{padding:22px}.marchio span{display:none}}
+</style>
+
+<header class="testata">
+  <div class="testata-in">
+    <div class="marchio">
+      <b>Quaderno a Quadretti</b>
+      <span>Liceo scientifico</span>
+    </div>
+    <button class="btn neutro piccolo btn-indice" id="tgl-indice" type="button">Indice</button>
+    <div class="badge-sync" id="badge-sync">progressi salvati su questo dispositivo</div>
+  </div>
+</header>
+
+<div class="impianto">
+  <nav class="rail" id="rail" aria-label="Indice degli argomenti"></nav>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+window.MathJax = {
+  tex:{ inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']] },
+  svg:{ fontCache:'local' },
+  options:{ skipHtmlTags:['script','noscript','style','textarea'] },
+  startup:{ typeset:false }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+<script src="contenuti-matematica.js"></script>
+<script src="contenuti-fisica.js"></script>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================================================================
+   STRUTTURA DEL CORSO
+   Per aggiungere una materia: un nuovo oggetto qui, con il suo file
+   di contenuti caricato come <script src="...">.
+   Per aggiungere un anno: una nuova chiave dentro "anni".
+   =================================================================== */
+var MATERIE = [
+  { id:"matematica", nome:"Matematica", sigla:"∑", accento:"mat",
+    anni:{ 1: (window.CONTENUTI_MATEMATICA || []) } },
+  { id:"fisica", nome:"Fisica", sigla:"ƒ", accento:"fis",
+    anni:{ 1: (window.CONTENUTI_FISICA || []) } }
+];
+var ANNI = [1,2,3,4,5];
+var SOGLIA = 6;              // risposte corrette necessarie per sbloccare il livello successivo
+var PER_BATTERIA = 10;
+
+/* =================== stato =================== */
+var S = {
+  vista:"home", materia:null, anno:1, argomento:null,
+  quiz:null, prog:{}, db:null, sample:null, mathPronto:false
+};
+
+var $main = document.getElementById("main");
+var $rail = document.getElementById("rail");
+var $badge = document.getElementById("badge-sync");
+
+/* =================== utilità =================== */
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+function tex(el){
+  if(window.MathJax && window.MathJax.typesetPromise){
+    try{ window.MathJax.typesetPromise(el?[el]:undefined).catch(function(){}); }catch(e){}
+  }
+}
+function trovaArgomento(id){
+  for(var i=0;i<MATERIE.length;i++){
+    var m=MATERIE[i];
+    for(var a in m.anni){
+      var lista=m.anni[a]||[];
+      for(var j=0;j<lista.length;j++){
+        if(lista[j].id===id) return {mat:m, anno:Number(a), arg:lista[j]};
+      }
+    }
+  }
+  return null;
+}
+function progDi(argId, liv){
+  var p = S.prog[argId];
+  if(!p) return null;
+  return p[liv] || null;
+}
+function sbloccato(argId, liv){
+  if(liv===0) return true;
+  var prec = progDi(argId, liv-1);
+  return !!(prec && prec.migliore >= SOGLIA);
+}
+function setAccento(materia){
+  var r=document.documentElement;
+  if(materia && materia.accento==="fis"){
+    r.style.setProperty("--accent","var(--fis)");
+    r.style.setProperty("--accent-soft","var(--fis-soft)");
+  } else {
+    r.style.setProperty("--accent","var(--mat)");
+    r.style.setProperty("--accent-soft","var(--mat-soft)");
+  }
+}
+
+/* =================== correzione delle risposte =================== */
+function normalizza(t){
+  return String(t==null?"":t).toLowerCase().trim()
+    .replace(/[−–—]/g,"-")
+    .replace(/²/g,"^2").replace(/³/g,"^3").replace(/⁴/g,"^4")
+    .replace(/\s+/g,"")
+    .replace(/[×·∙*]/g,"")
+    .replace(/\^/g,"")
+    .replace(/,/g,".")
+    .replace(/^\+/,"")
+    .replace(/[.;]+$/,"");
+}
+function numeroDa(t){
+  var m = String(t==null?"":t).replace(/\s/g,"").replace(",",".").match(/-?\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+function corretta(item, risposta){
+  if(risposta==null || String(risposta).trim()==="") return false;
+  if(item.tipo==="scelta") return Number(risposta) === Number(item.ok);
+  if(item.num){
+    var n = numeroDa(risposta);
+    if(n!==null){
+      var tol = (typeof item.num.tol==="number") ? item.num.tol : 0.001;
+      if(Math.abs(n - item.num.v) <= Math.max(tol, 1e-9)) return true;
+    }
+  }
+  var r = normalizza(risposta);
+  var sol = item.sol || [];
+  for(var i=0;i<sol.length;i++){ if(normalizza(sol[i])===r) return true; }
+  return false;
+}
+function rispostaGiusta(item){
+  if(item.tipo==="scelta") return item.opz[item.ok];
+  if(item.sol && item.sol.length) return item.sol[0];
+  if(item.num) return item.num.v + (item.num.u ? " " + item.num.u : "");
+  return "-";
+}
+
+/* =================== persistenza =================== */
+var CHIAVE = "quaderno-quadretti-progressi";
+function caricaLocale(){
+  try{ var raw=localStorage.getItem(CHIAVE); if(raw) return JSON.parse(raw)||{}; }catch(e){}
+  return {};
+}
+function salvaLocale(){
+  try{ localStorage.setItem(CHIAVE, JSON.stringify(S.prog)); }catch(e){}
+}
+function salvaProgressi(){
+  salvaLocale();
+  if(S.db){
+    try{
+      S.db.doc("progressi/studente").set({
+        argomenti: S.prog,
+        aggiornato: new Date().toISOString()
+      }).catch(function(){});
+    }catch(e){}
+  }
+}
+function registraEsito(argId, liv, punti){
+  if(!S.prog[argId]) S.prog[argId] = {};
+  var p = S.prog[argId][liv] || {migliore:0, tentativi:0};
+  p.tentativi = (p.tentativi||0) + 1;
+  p.migliore = Math.max(p.migliore||0, punti);
+  p.ultimo = punti;
+  p.data = new Date().toISOString();
+  S.prog[argId][liv] = p;
+  salvaProgressi();
+}
+
+/* =================== indice laterale =================== */
+function renderRail(){
+  var html = "";
+  MATERIE.forEach(function(m){
+    var col = m.accento==="fis" ? "var(--fis)" : "var(--mat)";
+    html += '<section class="rail-blocco">';
+    html += '<div class="rail-testa"><span class="sigla" style="background:'+col+'">'+m.sigla+'</span><h3>'+esc(m.nome)+'</h3></div>';
+    ANNI.forEach(function(anno){
+      var lista = m.anni[anno] || [];
+      if(!lista.length) return;
+      html += '<div class="rail-anno">'+anno+'º anno</div>';
+      lista.forEach(function(a){
+        var attiva = (S.argomento===a.id) ? " attiva" : "";
+        var punti = "";
+        for(var l=0;l<a.livelli.length;l++){
+          var p = progDi(a.id,l);
+          var cls = p ? (p.migliore>=SOGLIA ? "fatto" : "provato") : "";
+          punti += '<span class="punto '+cls+'"></span>';
+        }
+        html += '<button class="voce'+attiva+'" type="button" data-arg="'+a.id+'">'+
+                '<span class="txt">'+esc(a.titolo)+'</span><span class="punti">'+punti+'</span></button>';
+      });
+    });
+    var mancanti = ANNI.filter(function(y){ return !(m.anni[y]||[]).length; });
+    if(mancanti.length){
+      html += '<p class="rail-nota">'+mancanti.map(function(y){return y+"º";}).join(", ")+
+              ' anno: da aggiungere su richiesta.</p>';
+    }
+    html += '</section>';
+  });
+  $rail.innerHTML = html;
+  Array.prototype.forEach.call($rail.querySelectorAll("[data-arg]"), function(b){
+    b.addEventListener("click", function(){
+      apriArgomento(b.getAttribute("data-arg"));
+      if(window.innerWidth<=900) $rail.classList.remove("aperto");
+    });
+  });
+}
+
+/* =================== pagina iniziale =================== */
+function statistiche(){
+  var tot=0, fatti=0, corretteTot=0, materieAttive=0;
+  MATERIE.forEach(function(m){
+    var n=0;
+    for(var a in m.anni){ (m.anni[a]||[]).forEach(function(arg){ n++; tot += arg.livelli.length; }); }
+    if(n) materieAttive++;
+  });
+  for(var id in S.prog){ for(var l in S.prog[id]){
+    var p=S.prog[id][l];
+    if(p.migliore>=SOGLIA) fatti++;
+    corretteTot += (p.migliore||0);
+  }}
+  return {tot:tot, fatti:fatti, corrette:corretteTot, materie:materieAttive};
+}
+function primoLivelloAperto(){
+  for(var mi=0;mi<MATERIE.length;mi++){
+    var m=MATERIE[mi];
+    for(var anno in m.anni){
+      var lista=m.anni[anno]||[];
+      for(var ai=0;ai<lista.length;ai++){
+        var arg=lista[ai];
+        for(var li=0;li<arg.livelli.length;li++){
+          var p=progDi(arg.id,li);
+          if(sbloccato(arg.id,li) && (!p || p.migliore<SOGLIA)) return {mat:m,arg:arg,liv:li};
+        }
+      }
+    }
+  }
+  return null;
+}
+function statoMateria(m){
+  var livelli=0, fatti=0, primo=null;
+  for(var anno in m.anni){ (m.anni[anno]||[]).forEach(function(arg){
+    arg.livelli.forEach(function(_,i){
+      livelli++;
+      var p=progDi(arg.id,i);
+      if(p && p.migliore>=SOGLIA) fatti++;
+      if(!primo && sbloccato(arg.id,i) && (!p || p.migliore<SOGLIA)) primo=arg;
+    });
+  }); }
+  return {livelli:livelli,fatti:fatti,primo:primo,percent:livelli?Math.round(fatti/livelli*100):0};
+}
+function renderHome(){
+  setAccento(null);
+  var st = statistiche();
+  var nArg = 0;
+  MATERIE.forEach(function(m){ for(var a in m.anni) nArg += (m.anni[a]||[]).length; });
+
+  var h = "";
+  h += '<section class="scheda copertina">'+
+       '<div class="occhiello">Ripasso e autovalutazione</div>'+ 
+       '<h1>Matematica e fisica, un quadretto alla volta</h1>'+
+       '<p>Teoria in pillole, esempi svolti e batterie di dieci esercizi a difficoltà crescente. '+
+       'Ogni livello si sblocca solo superando il precedente, e alla fine di ogni prova trovi la soluzione ragionata di ciascun esercizio.</p>'+ 
+       '</section>';
+
+  var prossima = primoLivelloAperto();
+  var avanzamento = st.tot ? Math.round(st.fatti/st.tot*100) : 0;
+  h += '<section class="mission-grid celebrate">'+
+       '<article class="mission-card"><div class="mission-kicker">La tua prossima missione</div>'+ 
+       '<h2>'+(prossima ? esc(prossima.arg.titolo) : 'Percorso completato!')+'</h2>'+ 
+       '<p>'+(prossima ? 'Un piccolo passo alla volta: apri il prossimo argomento e conquista il livello '+(prossima.liv+1)+'.' : 'Hai superato tutti i livelli disponibili. Puoi ripetere una sfida per fissare le idee.')+'</p>'+ 
+       (prossima ? '<button class="btn" type="button" data-vai="'+prossima.arg.id+'">Inizia ora <span aria-hidden="true">→</span></button>' : '')+
+       '</article>'+ 
+       '<aside class="orbit-card"><div class="orbit" style="--percent:'+avanzamento+'%"><b>'+avanzamento+'%</b><span>del<br>percorso</span></div>'+ 
+       '<div class="orbit-copy"><strong>La mappa si riempie</strong><p>'+st.fatti+' livelli conquistati su '+st.tot+'. Ogni quiz chiuso fa avanzare il tuo percorso.</p></div></aside>'+ 
+       '</section>';
+
+  h += '<section class="scheda"><div class="scheda-in">'+
+       '<div class="cruscotto">'+
+       '<div class="tassello"><div class="k">'+nArg+'</div><div class="e">argomenti</div></div>'+
+       '<div class="tassello"><div class="k">'+st.tot+'</div><div class="e">livelli totali</div></div>'+
+       '<div class="tassello"><div class="k" style="color:var(--ok)">'+st.fatti+'</div><div class="e">livelli superati</div></div>'+
+       '<div class="tassello"><div class="k">'+(st.tot*PER_BATTERIA)+'</div><div class="e">esercizi disponibili</div></div>'+
+       '</div></div></section>';
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>La tua mappa di studio</h2><p class="sez-sub">Tocca una materia per continuare da dove eri rimasto.</p><div class="subject-map">';
+  MATERIE.forEach(function(m){
+    var sm=statoMateria(m), colore=m.accento==="fis"?"#ff6b4a":"#7157f6";
+    var target=sm.primo || ((m.anni[1]||[])[0]);
+    h += '<button class="subject-node" style="--node-color:'+colore+'" type="button" '+(target?'data-vai="'+target.id+'"':'disabled')+'>'+ 
+         '<span class="subject-icon" style="background:'+colore+'">'+esc(m.sigla)+'</span><span><b>'+esc(m.nome)+'</b><small>'+sm.fatti+'/'+sm.livelli+' livelli conquistati</small><span class="mini-bar"><i style="width:'+sm.percent+'%"></i></span></span></button>';
+  });
+  h += '</div><div class="study-tip"><span aria-hidden="true">💡</span><div><strong>Tip da coach</strong><br>Prova prima a ricordare senza guardare: il recupero attivo rende lo studio più solido.</div></div></div></section>';
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>Come funziona</h2>'+
+       '<p class="sez-sub">Il metodo è sempre lo stesso, per ogni argomento.</p>'+
+       '<ol class="come-si-usa home-tutorial">'+
+       '<li>Scegli un argomento dall’indice a sinistra e leggi le <strong>pillole di teoria</strong>, il formulario e gli esempi svolti.</li>'+
+       '<li>Passa alla <strong>palestra</strong>: dieci esercizi per volta, uno alla volta, senza correzione immediata.</li>'+
+       '<li>Al termine ricevi il punteggio e la <strong>soluzione argomentata</strong> di ogni esercizio. Per ciascuna puoi dichiarare di aver capito oppure chiedere una spiegazione più estesa.</li>'+
+       '<li>Con almeno <strong>'+SOGLIA+' risposte corrette su '+PER_BATTERIA+'</strong> si sblocca il livello successivo. Altrimenti si rifà il livello: gli esercizi restano gli stessi, così si lavora sugli errori.</li>'+
+       '</ol>'+
+       '<p class="sez-sub" style="margin-top:14px">I livelli superati e i punteggi restano salvati nel browser di questo dispositivo: riaprendo la pagina si riprende da dove si era arrivati. Cambiando computer o cancellando i dati del browser, invece, si riparte da zero.</p>'+
+       '</div></section>';
+
+  var daRiprendere = [];
+  MATERIE.forEach(function(m){ for(var a in m.anni){ (m.anni[a]||[]).forEach(function(arg){
+    for(var l=0;l<arg.livelli.length;l++){
+      if(sbloccato(arg.id,l)){
+        var p=progDi(arg.id,l);
+        if(!p || p.migliore<SOGLIA){ daRiprendere.push({m:m,arg:arg,liv:l,p:p}); return; }
+      }
+    }
+  }); }});
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>Da dove ripartire</h2>'+
+       '<p class="sez-sub">I primi livelli aperti e non ancora superati.</p>'+
+       '<div class="livelli">';
+  daRiprendere.slice(0,6).forEach(function(r){
+    var col = r.m.accento==="fis" ? "var(--fis)" : "var(--mat)";
+    h += '<div class="livello">'+
+         '<span class="grado" style="color:'+col+'">'+esc(r.m.nome)+'</span>'+
+         '<h4>'+esc(r.arg.titolo)+'</h4>'+
+         '<p>'+esc(r.arg.livelli[r.liv].n)+(r.p?' · miglior risultato '+r.p.migliore+'/'+PER_BATTERIA:'')+'</p>'+
+         '<button class="btn piccolo" type="button" data-vai="'+r.arg.id+'">Apri l’argomento</button>'+
+         '</div>';
+  });
+  if(!daRiprendere.length) h += '<p class="sez-sub">Tutti i livelli disponibili sono stati superati. Complimenti.</p>';
+  h += '</div></div></section>';
+
+  $main.innerHTML = h;
+  Array.prototype.forEach.call($main.querySelectorAll("[data-vai]"), function(b){
+    b.addEventListener("click", function(){ apriArgomento(b.getAttribute("data-vai")); });
+  });
+  tex($main);
+}
+
+/* =================== pagina argomento =================== */
+function apriArgomento(id){
+  var t = trovaArgomento(id);
+  if(!t) return;
+  S.vista="argomento"; S.materia=t.mat; S.anno=t.anno; S.argomento=id;
+  setAccento(t.mat);
+  renderRail();
+  renderArgomento(t);
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function renderArgomento(t){
+  var a = t.arg;
+  var h = "";
+
+  h += '<section class="scheda copertina">'+
+       '<div class="occhiello">'+esc(t.mat.nome)+' · '+t.anno+'º anno</div>'+
+       '<h1>'+esc(a.titolo)+'</h1>'+
+       '<p>'+esc(a.sommario)+'</p>'+
+       '</section>';
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>Teoria in pillole</h2>'+
+       '<p class="sez-sub">Il minimo indispensabile, con gli errori tipici segnalati.</p>'+
+       '<div class="pillole">';
+  a.pillole.forEach(function(p){
+    h += '<article class="pillola"><h4>'+p.t+'</h4><p>'+p.c+'</p></article>';
+  });
+  h += '</div></div></section>';
+
+  if(a.formule && a.formule.length){
+    h += '<section class="scheda"><div class="scheda-in sezione">'+
+         '<h2>Formulario</h2><p class="sez-sub">Da tenere sotto gli occhi mentre si svolgono gli esercizi.</p>'+
+         '<div class="formulario">';
+    a.formule.forEach(function(f){
+      h += '<div class="formula"><span class="nome">'+esc(f.n)+'</span><span class="corpo">$$'+f.f+'$$</span></div>';
+    });
+    h += '</div></div></section>';
+  }
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>Esempi svolti</h2><p class="sez-sub">Il ragionamento passo per passo, non solo il risultato.</p>';
+  a.esempi.forEach(function(e){
+    h += '<article class="esempio"><div class="consegna">'+e.t+'</div><ol>';
+    e.passi.forEach(function(p){ h += '<li>'+p+'</li>'; });
+    h += '</ol><div class="esito"><b>Risultato</b><span>'+e.r+'</span></div></article>';
+  });
+  h += '</div></section>';
+
+  h += '<section class="scheda"><div class="scheda-in sezione">'+
+       '<h2>Palestra</h2>'+
+       '<p class="sez-sub">Tre batterie da '+PER_BATTERIA+' esercizi a difficoltà crescente. '+
+       'Servono almeno '+SOGLIA+' risposte corrette per passare al livello successivo.</p>'+
+       '<div class="livelli">';
+  a.livelli.forEach(function(l, i){
+    var ok = sbloccato(a.id, i);
+    var p = progDi(a.id, i);
+    var stato;
+    if(!ok) stato = '<span class="stato chiuso">Bloccato</span>';
+    else if(p && p.migliore>=SOGLIA) stato = '<span class="stato ok">Superato · '+p.migliore+'/'+PER_BATTERIA+'</span>';
+    else if(p) stato = '<span class="stato parz">Da rifare · '+p.migliore+'/'+PER_BATTERIA+'</span>';
+    else stato = '<span class="stato chiuso">Mai svolto</span>';
+    h += '<div class="livello'+(ok?"":" bloccato")+'">'+
+         '<span class="grado">Livello '+(i+1)+'</span>'+
+         '<h4>'+esc(l.n.replace(/^Livello\s*\d+\s*-\s*/,""))+'</h4>'+
+         '<p>'+esc(l.d)+'</p>'+ stato +
+         '<button class="btn piccolo" type="button" data-liv="'+i+'"'+(ok?"":" disabled")+'>'+
+         (p ? "Rifai il livello" : "Inizia") + '</button>'+
+         (ok ? "" : '<p style="font-size:12.5px">Supera prima il livello '+i+'.</p>')+
+         '</div>';
+  });
+  h += '</div></div></section>';
+
+  if(a.risorse && a.risorse.length){
+    h += '<section class="scheda"><div class="scheda-in sezione">'+
+         '<h2>Approfondimenti online</h2>'+
+         '<p class="sez-sub">Risorse gratuite in italiano, per chi vuole leggere la spiegazione completa.</p>'+
+         '<div class="risorse">';
+    a.risorse.forEach(function(r){
+      h += '<a class="risorsa" href="'+esc(r.u)+'" target="_blank" rel="noopener noreferrer">'+
+           '<span class="fonte">'+esc(r.f)+'</span><span class="t">'+esc(r.t)+'</span><span class="frec">↗</span></a>';
+    });
+    h += '</div></div></section>';
+  }
+
+  $main.innerHTML = h;
+  Array.prototype.forEach.call($main.querySelectorAll("[data-liv]"), function(b){
+    b.addEventListener("click", function(){ avviaQuiz(a.id, Number(b.getAttribute("data-liv"))); });
+  });
+  tex($main);
+}
+
+/* =================== quiz =================== */
+function avviaQuiz(argId, liv){
+  var t = trovaArgomento(argId);
+  if(!t || !sbloccato(argId, liv)) return;
+  S.vista="quiz";
+  S.quiz = { argId:argId, liv:liv, idx:0, risposte:[], items:t.arg.livelli[liv].items.slice() };
+  renderDomanda();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function renderDomanda(){
+  var q = S.quiz, t = trovaArgomento(q.argId);
+  var item = q.items[q.idx];
+  var passi = "";
+  for(var i=0;i<q.items.length;i++){
+    passi += '<span class="passo '+(i<q.idx?"fatto":(i===q.idx?"ora":""))+'"></span>';
+  }
+  var h = '<section class="scheda quiz">'+
+    '<div class="quiz-testa">'+
+      '<div class="qt"><h2>'+esc(t.arg.titolo)+'</h2>'+
+      '<div class="sub">'+esc(t.arg.livelli[q.liv].n)+' · esercizio '+(q.idx+1)+' di '+q.items.length+'</div></div>'+
+      '<div class="passi">'+passi+'</div>'+
+    '</div>'+
+    '<div class="domanda">'+
+      '<div class="num">Esercizio '+(q.idx+1)+'</div>'+
+      '<div class="testo">'+item.q+'</div>';
+
+  if(item.tipo==="scelta"){
+    h += '<div class="opzioni" id="opzioni">';
+    item.opz.forEach(function(o,i){
+      h += '<label class="opz" data-i="'+i+'"><input type="radio" name="scelta" id="opz-'+i+'" value="'+i+'"><span>'+o+'</span></label>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="campo">'+
+         '<input type="text" id="risposta" autocomplete="off" autocapitalize="off" spellcheck="false" '+
+         'placeholder="Scrivi qui la tua risposta'+(item.num&&item.num.u?" (in "+esc(item.num.u)+")":"")+'" aria-label="La tua risposta">'+
+         '</div>'+
+         '<p class="suggerimento">Scrivi il risultato in forma semplice: per le potenze va bene sia <code>x^2</code> sia <code>x2</code>, il segno di moltiplicazione può essere omesso e la virgola decimale vale quanto il punto.</p>';
+  }
+
+  h += '<div class="azioni">'+
+       '<button class="btn" type="button" id="conferma">Conferma</button>'+
+       '<button class="btn neutro" type="button" id="nonso">Non lo so</button>'+
+       '<button class="btn ghost piccolo" type="button" id="esci">Esci dalla prova</button>'+
+       '</div>'+
+       '<p class="suggerimento">Le soluzioni compaiono tutte insieme alla fine della batteria.</p>'+
+       '</div></section>';
+
+  $main.innerHTML = h;
+
+  var opzioni = document.getElementById("opzioni");
+  if(opzioni){
+    Array.prototype.forEach.call(opzioni.querySelectorAll(".opz"), function(l){
+      l.addEventListener("click", function(){
+        Array.prototype.forEach.call(opzioni.querySelectorAll(".opz"), function(x){ x.classList.remove("sel"); });
+        l.classList.add("sel");
+        l.querySelector("input").checked = true;
+      });
+    });
+  }
+  var input = document.getElementById("risposta");
+  if(input){
+    input.focus();
+    input.addEventListener("keydown", function(ev){ if(ev.key==="Enter"){ ev.preventDefault(); conferma(); } });
+  }
+  document.getElementById("conferma").addEventListener("click", conferma);
+  document.getElementById("nonso").addEventListener("click", function(){ avanza(""); });
+  document.getElementById("esci").addEventListener("click", function(){
+    if(confirm("Uscendo la prova non viene registrata. Vuoi davvero uscire?")) apriArgomento(q.argId);
+  });
+  tex($main);
+}
+function conferma(){
+  var item = S.quiz.items[S.quiz.idx];
+  if(item.tipo==="scelta"){
+    var sel = document.querySelector('input[name="scelta"]:checked');
+    if(!sel){ alert("Scegli una delle opzioni, oppure usa «Non lo so»."); return; }
+    avanza(sel.value);
+  } else {
+    var v = document.getElementById("risposta").value;
+    if(!v.trim()){ alert("Scrivi una risposta, oppure usa «Non lo so»."); return; }
+    avanza(v);
+  }
+}
+function avanza(valore){
+  S.quiz.risposte.push(valore);
+  S.quiz.idx++;
+  if(S.quiz.idx >= S.quiz.items.length) chiudiQuiz();
+  else renderDomanda();
+}
+
+/* =================== esito e revisione =================== */
+function chiudiQuiz(){
+  var q = S.quiz;
+  var punti = 0;
+  q.items.forEach(function(it,i){ if(corretta(it, q.risposte[i])) punti++; });
+  q.punti = punti;
+  registraEsito(q.argId, q.liv, punti);
+  S.vista = "esito";
+  renderRail();
+  renderEsito();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function renderEsito(){
+  var q = S.quiz, t = trovaArgomento(q.argId);
+  var superato = q.punti >= SOGLIA;
+  var ultimo = q.liv >= t.arg.livelli.length-1;
+  var msg, titolo;
+  if(q.punti===PER_BATTERIA){ titolo="Batteria perfetta"; msg="Dieci su dieci. Il livello successivo è aperto."; }
+  else if(superato){ titolo="Livello superato"; msg="Hai raggiunto la soglia di "+SOGLIA+"/"+PER_BATTERIA+". Leggi comunque le soluzioni degli esercizi sbagliati prima di proseguire."; }
+  else { titolo="Livello non superato"; msg="Servono almeno "+SOGLIA+" risposte corrette su "+PER_BATTERIA+". Studia le soluzioni qui sotto e rifai la batteria: gli esercizi sono gli stessi."; }
+  if(superato && ultimo) msg = "Hai completato l’ultimo livello di questo argomento.";
+
+  var h = '<section class="scheda quiz">'+
+    '<div class="punteggio">'+
+      '<div class="voto" style="color:'+(superato?"var(--ok)":"var(--err)")+'">'+q.punti+'<small>/'+PER_BATTERIA+'</small></div>'+
+      '<div class="msg"><h2>'+titolo+'</h2><p>'+msg+'</p></div>'+
+    '</div>'+
+    '<div class="revisione" id="revisione">'+
+      '<p class="sez-sub" style="margin:0">Soluzione commentata di ogni esercizio. Per ciascuna puoi dire se hai capito oppure chiedere una spiegazione più estesa.</p>';
+
+  q.items.forEach(function(it,i){
+    var ok = corretta(it, q.risposte[i]);
+    var tua = q.risposte[i];
+    var tuaTxt = (tua===""||tua==null) ? "(nessuna risposta)"
+               : (it.tipo==="scelta" ? it.opz[Number(tua)] : esc(tua));
+    h += '<article class="rev '+(ok?"giusta":"sbagliata")+'" data-i="'+i+'">'+
+      '<div class="rev-testa"><span class="n">'+(i+1)+'</span>'+
+      '<span class="q">'+it.q+'</span>'+
+      '<span class="esitino '+(ok?"ok":"no")+'">'+(ok?"corretta":"da rivedere")+'</span></div>'+
+      '<div class="rev-corpo">'+
+        '<dl class="riga-risp">'+
+          '<dt>La tua</dt><dd>'+tuaTxt+'</dd>'+
+          '<dt>Corretta</dt><dd>'+ (it.tipo==="scelta" ? rispostaGiusta(it) : esc(rispostaGiusta(it))) +'</dd>'+
+        '</dl>'+
+        '<div class="spiegazione">'+it.spieg+'</div>'+
+        '<div class="capito" data-capito="'+i+'">'+
+          '<span>Hai capito questo esercizio?</span>'+
+          '<button class="btn piccolo neutro" type="button" data-ho-capito="'+i+'">Sì, ho capito</button>'+
+          '<button class="btn piccolo ghost" type="button" data-spiega="'+i+'">No, spiegamelo meglio</button>'+
+        '</div>'+
+        '<div class="approfondimento" id="appr-'+i+'" hidden></div>'+
+      '</div></article>';
+  });
+
+  h += '</div>'+
+    '<div class="azioni" style="padding:0 24px 24px">'+
+      '<button class="btn neutro" type="button" id="rifai">Rifai questo livello</button>'+
+      (superato && !ultimo ? '<button class="btn" type="button" id="prossimo">Vai al livello '+(q.liv+2)+'</button>' : '')+
+      '<button class="btn ghost" type="button" id="torna">Torna all’argomento</button>'+
+    '</div></section>';
+
+  $main.innerHTML = h;
+
+  Array.prototype.forEach.call($main.querySelectorAll("[data-ho-capito]"), function(b){
+    b.addEventListener("click", function(){
+      var i = b.getAttribute("data-ho-capito");
+      var box = $main.querySelector('[data-capito="'+i+'"]');
+      box.innerHTML = '<span class="chiuso-ok">✓ Segnato come capito.</span>'+
+        '<button class="btn piccolo ghost" type="button" data-spiega="'+i+'">Ho cambiato idea, spiegamelo</button>';
+      collegaSpiega(box);
+    });
+  });
+  collegaSpiega($main);
+
+  var rifai = document.getElementById("rifai");
+  if(rifai) rifai.addEventListener("click", function(){ avviaQuiz(q.argId, q.liv); });
+  var pross = document.getElementById("prossimo");
+  if(pross) pross.addEventListener("click", function(){ avviaQuiz(q.argId, q.liv+1); });
+  document.getElementById("torna").addEventListener("click", function(){ apriArgomento(q.argId); });
+  tex($main);
+}
+function collegaSpiega(root){
+  Array.prototype.forEach.call(root.querySelectorAll("[data-spiega]"), function(b){
+    if(b.dataset.collegato) return;
+    b.dataset.collegato = "1";
+    b.addEventListener("click", function(){ chiediSpiegazione(Number(b.getAttribute("data-spiega")), b); });
+  });
+}
+async function chiediSpiegazione(i, bottone){
+  var box = document.getElementById("appr-"+i);
+  var q = S.quiz, t = trovaArgomento(q.argId), it = q.items[i];
+  box.hidden = false;
+
+  if(!S.sample){
+    box.textContent = "La spiegazione estesa automatica non è disponibile in questa sessione. "+
+      "Rileggi la teoria in pillole dell’argomento e gli esempi svolti: l’esercizio riprende lo stesso schema. "+
+      "In fondo alla pagina dell’argomento trovi anche i collegamenti a YouMath ed Edutecnica.";
+    return;
+  }
+
+  bottone.disabled = true;
+  box.textContent = "Sto preparando una spiegazione più estesa…";
+
+  var tua = q.risposte[i];
+  var tuaTxt = (tua===""||tua==null) ? "nessuna risposta" :
+    (it.tipo==="scelta" ? String(it.opz[Number(tua)]).replace(/<[^>]+>/g,"") : String(tua));
+
+  var richiesta =
+    "Sei un insegnante di matematica e fisica di liceo scientifico e stai spiegando a uno studente del primo anno.\n\n"+
+    "ARGOMENTO: "+t.arg.titolo+" ("+t.mat.nome+", 1º anno)\n"+
+    "ESERCIZIO: "+String(it.q).replace(/<[^>]+>/g,"")+"\n"+
+    "RISPOSTA DELLO STUDENTE: "+tuaTxt+"\n"+
+    "RISPOSTA CORRETTA: "+String(rispostaGiusta(it)).replace(/<[^>]+>/g,"")+"\n"+
+    "SPIEGAZIONE GIA’ FORNITA (lo studente dice di non averla capita): "+String(it.spieg).replace(/<[^>]+>/g,"")+"\n\n"+
+    "Riparti da zero con parole diverse e più semplici. Struttura la risposta così:\n"+
+    "1) Che cosa chiede davvero l’esercizio, in una frase.\n"+
+    "2) La regola o la definizione che serve, enunciata in modo elementare.\n"+
+    "3) Lo svolgimento passo per passo, spiegando il perché di ogni passaggio.\n"+
+    "4) Dove nasce probabilmente l’errore dello studente (se ha risposto qualcosa).\n"+
+    "5) Un esercizio molto simile da provare, con la sola risposta finale indicata alla fine.\n\n"+
+    "Scrivi in italiano, in testo semplice senza LaTeX e senza tabelle, massimo 350 parole. "+
+    "Usa notazioni leggibili come x^2, sqrt(x), 3/4.";
+
+  try{
+    var r = await S.sample(richiesta, {
+      modelTier:"default",
+      onText:function(ev){ box.textContent = ev.text; }
+    });
+    box.textContent = r.text;
+  }catch(err){
+    var code = err && err.code;
+    if(code==="not_granted") box.textContent = "Per ottenere la spiegazione estesa serve il consenso richiesto dal browser. Riprova e accetta la richiesta.";
+    else if(code==="rate_limited") box.textContent = "Troppe richieste ravvicinate. Aspetta qualche secondo e riprova.";
+    else box.textContent = (err && err.text) ? err.text : "Non sono riuscito a generare la spiegazione estesa. Riprova fra poco.";
+  }finally{
+    bottone.disabled = false;
+  }
+}
+
+/* =================== avvio =================== */
+document.getElementById("tgl-indice").addEventListener("click", function(){
+  $rail.classList.toggle("aperto");
+});
+
+S.prog = caricaLocale();
+renderRail();
+renderHome();
+
+if(window.MathJax && window.MathJax.startup && window.MathJax.startup.promise){
+  window.MathJax.startup.promise.then(function(){ S.mathPronto=true; tex($main); tex($rail); });
+}
+
+if(window.claude && typeof window.claude.use === "function"){
+  window.claude.use("db").then(function(db){
+    if(!db) return;
+    S.db = db;
+    $badge.textContent = "progressi salvati sull’account";
+    $badge.classList.add("on");
+    return db.doc("progressi/studente").get().then(function(snap){
+      if(snap && snap.exists){
+        var remoti = (snap.data()||{}).argomenti || {};
+        // unione: per ogni livello si tiene il miglior risultato fra locale e remoto
+        for(var id in remoti){
+          if(!S.prog[id]) S.prog[id] = {};
+          for(var l in remoti[id]){
+            var r = remoti[id][l], loc = S.prog[id][l];
+            if(!loc || (r.migliore||0) > (loc.migliore||0)) S.prog[id][l] = r;
+          }
+        }
+        salvaLocale();
+        renderRail();
+        if(S.vista==="home") renderHome();
+        else if(S.vista==="argomento"){ var t=trovaArgomento(S.argomento); if(t) renderArgomento(t); }
+      }
+    });
+  }).catch(function(){});
+
+  window.claude.use("sample").then(function(s){ if(s) S.sample = s; }).catch(function(){});
+}
+
+})();
+</script>
