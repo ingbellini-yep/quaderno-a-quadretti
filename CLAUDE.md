@@ -20,6 +20,8 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `contenuti-fisica.js` | contenuti di fisica | sì |
 | `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic | no (solo locale) |
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
+| `CLAUDE.md` | queste istruzioni di progetto | sì |
+| `.gitignore` | esclude i due file solo locali | sì |
 
 I tre file pubblicati devono restare nella stessa cartella: la pagina carica i contenuti per
 percorso relativo.
@@ -35,11 +37,6 @@ legge di Hooke e forza elastica; leve e macchine semplici.
 
 Gli anni dal 2º al 5º compaiono nell'indice come «da aggiungere su richiesta».
 
-> **Disallineamento noto (settembre 2026)** — il repo su GitHub ha ancora **3** argomenti di
-> fisica: «Leve e macchine semplici» esiste solo nella copia locale. `index.html` e
-> `contenuti-matematica.js` sono invece identici a quelli pubblicati. Il primo push deve
-> includere `contenuti-fisica.js`.
-
 ## Struttura di un argomento
 
 Lo schema completo (argomento + i tre tipi di esercizio) è documentato **in testa a
@@ -51,6 +48,10 @@ Ogni argomento contiene: 7–10 pillole di teoria, formulario in LaTeX (reso con
 
 I tre tipi di esercizio sono: risposta aperta testuale, risposta aperta numerica con
 tolleranza dichiarata, scelta multipla.
+
+Nelle stringhe JavaScript i comandi LaTeX vanno scritti con backslash **doppio**
+(`\\cdot`, `\\frac`, `\\,`): con il backslash singolo JavaScript lo scarta e MathJax
+riceve `cdot` come testo.
 
 Per estendere:
 
@@ -89,24 +90,36 @@ per esercizio.
    opzione errata viene accettata, la risposta vuota non passa.
 3. **Verifica simbolica con SymPy** di tutte le identità algebriche e delle scomposizioni;
    verifica aritmetica di tutti i calcoli di geometria e di fisica (**g = 9,8 m/s²**).
+4. **Controllo dei link** con `curl` (stato 200). YouMath ha cambiato gli indirizzi delle
+   lezioni e a volte rifiuta le connessioni automatiche: in quel caso confermare la pagina
+   almeno tramite l'indice di un motore di ricerca.
+
+Strumenti sulla macchina (settembre 2026): Node.js LTS 24 in `C:\Program Files\nodejs`
+(installato con winget; le shell aperte prima dell'installazione non lo vedono nel PATH),
+Python 3.14 (SymPy va installato con `pip install sympy`). Il correttore vive dentro una
+funzione anonima in `index.html`: per testarlo fuori dal browser si estraggono `normalizza`,
+`numeroDa` e `corretta` dal sorgente con un'espressione regolare e si valutano in Node
+insieme ai file dei contenuti, con `window = {}`.
 
 ## Git
 
-Questa cartella **non è ancora un repository**: prima di lavorare, allinearla al remoto.
+La cartella è un repository locale con `main` agganciato a `origin/main`; `.gitignore`
+esclude `quaderno-locale.html` e `LEGGIMI.md`. Dopo ogni modifica ai contenuti: verifiche,
+commit e push su `main`, poi controllo del deploy su Vercel (progetto
+`quaderno-a-quadretti`, team `ingbellini-6799s-projects`).
+
+Se la cartella dovesse essere riallineata da zero (per esempio dopo una copia da OneDrive
+senza `.git`), `git checkout` si rifiuta di sovrascrivere i file locali non tracciati:
 
 ```bash
 git init
 git remote add origin https://github.com/ingbellini-yep/quaderno-a-quadretti.git
 git fetch origin
-git checkout -b main --track origin/main   # tiene i file locali, che sono più recenti
-git status                                 # deve mostrare solo contenuti-fisica.js modificato
+git branch --track main origin/main
+git symbolic-ref HEAD refs/heads/main
+git reset            # allinea solo l'indice: i file locali restano intatti
+git status           # mostra le differenze fra la copia locale e il remoto
 ```
-
-`quaderno-locale.html` e `LEGGIMI.md` non stanno nel repo: aggiungerli a `.gitignore`
-oppure versionarli, ma con una scelta esplicita.
-
-Dopo ogni modifica ai contenuti: commit e push su `main`, poi controllare il deploy su
-Vercel.
 
 ## Lingua
 

@@ -391,63 +391,68 @@ window.CONTENUTI_FISICA = [
   sommario: "Fulcro, bracci, forza motrice e resistente: come le leve permettono di equilibrare o trasformare una forza.",
   pillole: [
     {t:"La leva", c:"Una <strong>leva</strong> è un'asta rigida che può ruotare attorno a un punto fisso, il <strong>fulcro</strong>. Su di essa agiscono una forza <strong>motrice</strong> $F_m$ (quella che applichiamo) e una forza <strong>resistente</strong> $F_r$ (il carico da vincere)."},
-    {t:"Braccio e momento", c:"Il <strong>braccio</strong> $b$ è la distanza <em>perpendicolare</em> fra il fulcro e la retta d'azione della forza. L'effetto rotatorio di una forza si chiama <strong>momento</strong>: $M=F\,b$. Stessa forza, braccio maggiore = rotazione più efficace."},
+    {t:"Braccio e momento", c:"Il <strong>braccio</strong> $b$ è la distanza <em>perpendicolare</em> fra il fulcro e la retta d'azione della forza. L'effetto rotatorio di una forza si chiama <strong>momento</strong>: $M=F\\,b$. Stessa forza, braccio maggiore = rotazione più efficace."},
     {t:"Equilibrio", c:"Una leva è in equilibrio quando i momenti che la fanno ruotare nei due versi si compensano: $F_m b_m=F_r b_r$. Non si confrontano quindi solo le forze: conta anche <em>dove</em> sono applicate."},
     {t:"Leve di primo genere", c:"Nelle leve di <strong>primo genere</strong> il fulcro sta fra forza motrice e resistente: altalena, forbici, pinze. Possono essere vantaggiose, svantaggiose o indifferenti, secondo i bracci."},
     {t:"Leve di secondo e terzo genere", c:"Nelle leve di <strong>secondo genere</strong> la resistenza è fra fulcro e forza motrice: carriola e schiaccianoci; sono vantaggiose. Nelle leve di <strong>terzo genere</strong> la forza motrice è fra fulcro e resistenza: avambraccio con bicipite e pinzette; sono svantaggiose in forza ma danno velocità e precisione."},
-    {t:"Vantaggio meccanico", c:"Il <strong>vantaggio meccanico</strong> è $V=\dfrac{F_r}{F_m}=\dfrac{b_m}{b_r}$. Se è maggiore di 1, basta una forza motrice minore della resistenza; in cambio la mano percorre una distanza maggiore del carico."},
+    {t:"Vantaggio meccanico", c:"Il <strong>vantaggio meccanico</strong> è $V=\\dfrac{F_r}{F_m}=\\dfrac{b_m}{b_r}$. Se è maggiore di 1, basta una forza motrice minore della resistenza; in cambio la mano percorre una distanza maggiore del carico."},
     {t:"La regola pratica", c:"Per svitare un dado o spostare un carico, applica la forza più <strong>lontano</strong> possibile dal fulcro e in direzione <strong>perpendicolare</strong> alla leva: così il braccio è massimo e serve meno forza."}
   ],
   formule: [
-    {n:"Momento di una forza", f:"M=F\,b \qquad [\mathrm{N\,m}]"},
+    {n:"Momento di una forza", f:"M=F\\,b \\qquad [\\mathrm{N\\,m}]"},
     {n:"Equilibrio della leva", f:"F_m b_m=F_r b_r"},
-    {n:"Forza motrice", f:"F_m=\frac{F_r b_r}{b_m}"},
-    {n:"Vantaggio meccanico", f:"V=\frac{F_r}{F_m}=\frac{b_m}{b_r}"}
+    {n:"Forza motrice", f:"F_m=\\frac{F_r b_r}{b_m}"},
+    {n:"Vantaggio meccanico", f:"V=\\frac{F_r}{F_m}=\\frac{b_m}{b_r}"}
   ],
   esempi: [
-    {t:"Una carriola solleva un carico di $300$ N posto a $0{,}20$ m dalla ruota. I manici distano $0{,}80$ m dalla ruota. Quale forza verticale serve?", passi:["La ruota è il fulcro; il carico è la resistenza e le mani applicano la forza motrice.","All'equilibrio: $F_m\cdot0{,}80=300\cdot0{,}20$.","Quindi $F_m=60:0{,}80$."], r:"$F_m=75$ N: la carriola è una leva vantaggiosa."},
-    {t:"Per aprire una porta spingi con $20$ N vicino alla maniglia, a $0{,}90$ m dai cardini. Qual è il momento della forza?", passi:["I cardini sono il fulcro.","La spinta è perpendicolare alla porta, quindi il braccio è $0{,}90$ m.","$M=F\,b=20\cdot0{,}90$."], r:"$M=18$ N m."}
+    {t:"Una carriola solleva un carico di $300$ N posto a $0{,}20$ m dalla ruota. I manici distano $0{,}80$ m dalla ruota. Quale forza verticale serve?", passi:["La ruota è il fulcro; il carico è la resistenza e le mani applicano la forza motrice.","All'equilibrio: $F_m\\cdot0{,}80=300\\cdot0{,}20$.","Quindi $F_m=60:0{,}80$."], r:"$F_m=75$ N: la carriola è una leva vantaggiosa."},
+    {t:"Per aprire una porta spingi con $20$ N vicino alla maniglia, a $0{,}90$ m dai cardini. Qual è il momento della forza?", passi:["I cardini sono il fulcro.","La spinta è perpendicolare alla porta, quindi il braccio è $0{,}90$ m.","$M=F\\,b=20\\cdot0{,}90$."], r:"$M=18$ N m."},
+    {t:"Uno schiaccianoci ha la cerniera a un'estremità: la noce sta a $3$ cm dalla cerniera e la mano stringe a $12$ cm. Se la noce cede con $200$ N, quale forza deve fare la mano e qual è il vantaggio meccanico?", passi:["La cerniera è il fulcro; la noce (resistenza) sta fra fulcro e mano: leva di secondo genere.","Converto i bracci in metri: $b_r=0{,}03$ m e $b_m=0{,}12$ m.","Equilibrio dei momenti: $F_m\\cdot0{,}12=200\\cdot0{,}03=6$, quindi $F_m=6:0{,}12$.","Vantaggio meccanico: $V=b_m:b_r=0{,}12:0{,}03$."], r:"$F_m=50$ N e $V=4$: la mano applica un quarto della forza che rompe la noce."}
   ],
   risorse: [
-    {t:"Leve: definizioni, tipi ed equilibrio", u:"https://www.youmath.it/lezioni/fisica/dinamica/2964-leve.html", f:"YouMath"},
-    {t:"Le macchine semplici e le leve", u:"https://www.edutecnica.it/meccanica/statica/statica.htm", f:"Edutecnica"}
+    {t:"Le leve: generi, equilibrio e vantaggio", u:"https://www.youmath.it/lezioni/fisica/dinamica/3009-leve.html", f:"YouMath"},
+    {t:"Momento di una forza (momento torcente)", u:"https://www.youmath.it/lezioni/fisica/dinamica/3006-momento-di-una-forza-o-momento-torcente.html", f:"YouMath"},
+    {t:"Le leve in fisica: classificazione e vantaggio", u:"https://www.edutecnica.it/meccanica/momento-di-una-forza/leve.htm", f:"Edutecnica"},
+    {t:"Macchine semplici", u:"https://www.edutecnica.it/meccanica/ms/ms.htm", f:"Edutecnica"},
+    {t:"Macchine semplici: esercizi risolti", u:"https://www.edutecnica.it/meccanica/msx/msx.htm", f:"Edutecnica"},
+    {t:"Esercizi sul momento di una forza e sulle coppie", u:"https://www.edutecnica.it/meccanica/coppiax/coppiax.htm", f:"Edutecnica"}
   ],
   livelli: [
     {n:"Livello 1 - Base", d:"Elementi della leva, tipi e momento di una forza.", items:[
       {q:"Il punto attorno al quale una leva può ruotare si chiama:",tipo:"scelta",opz:["braccio","fulcro","resistenza","momento"],ok:1,spieg:"Il <strong>fulcro</strong> è il punto o asse di rotazione della leva."},
       {q:"Il braccio di una forza è:",tipo:"scelta",opz:["la lunghezza totale dell'asta","la distanza perpendicolare fra fulcro e retta d'azione della forza","la forza applicata","la distanza fra le due forze"],ok:1,spieg:"Conta la distanza <strong>perpendicolare</strong> dalla retta d'azione della forza al fulcro."},
-      {q:"Una forza di $10$ N applicata con braccio $0{,}5$ m produce un momento di quanti N m?",tipo:"aperta",num:{v:5,u:"N m",tol:0.01},sol:["5","5 Nm"],spieg:"$M=F b=10\cdot0{,}5=5$ N m."},
+      {q:"Una forza di $10$ N applicata con braccio $0{,}5$ m produce un momento di quanti N m?",tipo:"aperta",num:{v:5,u:"N m",tol:0.01},sol:["5","5 Nm"],spieg:"$M=F b=10\\cdot0{,}5=5$ N m."},
       {q:"In una leva di primo genere il fulcro si trova:",tipo:"scelta",opz:["fra motrice e resistente","vicino alla resistenza","vicino alla motrice","fuori dalla leva"],ok:0,spieg:"Nella leva di primo genere il fulcro è posto fra le due forze, come nelle forbici."},
       {q:"La carriola è una leva di:",tipo:"scelta",opz:["primo genere","secondo genere","terzo genere","nessun genere"],ok:1,spieg:"Ruota = fulcro, carico = resistenza intermedia, mani = forza motrice: è di secondo genere."},
       {q:"Lo schiaccianoci è normalmente una leva di:",tipo:"scelta",opz:["primo genere","secondo genere","terzo genere","nessun genere"],ok:1,spieg:"Il guscio (resistenza) sta fra cerniera e mano: leva di secondo genere."},
       {q:"Per aumentare il momento di una stessa forza conviene applicarla:",tipo:"scelta",opz:["più vicina al fulcro","più lontana dal fulcro","parallelamente alla leva","verso il fulcro"],ok:1,spieg:"A parità di forza, $M=Fb$: aumentando il braccio aumenta il momento."},
-      {q:"Una chiave lunga $0{,}30$ m viene spinta perpendicolarmente con $40$ N. Momento?",tipo:"aperta",num:{v:12,u:"N m",tol:0.01},sol:["12","12 Nm"],spieg:"$M=40\cdot0{,}30=12$ N m."},
+      {q:"Una chiave lunga $0{,}30$ m viene spinta perpendicolarmente con $40$ N. Momento?",tipo:"aperta",num:{v:12,u:"N m",tol:0.01},sol:["12","12 Nm"],spieg:"$M=40\\cdot0{,}30=12$ N m."},
       {q:"Nell'avambraccio sollevato dal bicipite, il bicipite applica la forza fra gomito e mano: è una leva di:",tipo:"scelta",opz:["primo genere","secondo genere","terzo genere","non è una leva"],ok:2,spieg:"Il gomito è il fulcro, il bicipite è fra fulcro e carico in mano: terzo genere."},
       {q:"L'unità di misura del momento di una forza è:",tipo:"scelta",opz:["N/m","N m","J/s","kg m"],ok:1,spieg:"Il momento è forza per braccio, quindi si misura in <strong>N m</strong>. Ha stessa unità del joule ma non è energia."}
     ]},
     {n:"Livello 2 - Intermedio", d:"Equilibrio e calcoli con forza motrice, resistenza e bracci.", items:[
-      {q:"Una resistenza di $120$ N è a $0{,}20$ m dal fulcro; la forza motrice agisce a $0{,}60$ m. Quale forza motrice equilibra la leva?",tipo:"aperta",num:{v:40,u:"N",tol:0.01},sol:["40","40 N"],spieg:"$F_m=120\cdot0{,}20/0{,}60=40$ N."},
-      {q:"Se in una leva $F_m=30$ N, $b_m=0{,}8$ m e $b_r=0{,}2$ m, qual è la resistenza equilibrata?",tipo:"aperta",num:{v:120,u:"N",tol:0.01},sol:["120","120 N"],spieg:"$F_r=F_m b_m/b_r=30\cdot0{,}8/0{,}2=120$ N."},
+      {q:"Una resistenza di $120$ N è a $0{,}20$ m dal fulcro; la forza motrice agisce a $0{,}60$ m. Quale forza motrice equilibra la leva?",tipo:"aperta",num:{v:40,u:"N",tol:0.01},sol:["40","40 N"],spieg:"$F_m=120\\cdot0{,}20/0{,}60=40$ N."},
+      {q:"Se in una leva $F_m=30$ N, $b_m=0{,}8$ m e $b_r=0{,}2$ m, qual è la resistenza equilibrata?",tipo:"aperta",num:{v:120,u:"N",tol:0.01},sol:["120","120 N"],spieg:"$F_r=F_m b_m/b_r=30\\cdot0{,}8/0{,}2=120$ N."},
       {q:"Una leva ha braccio motore $1$ m e braccio resistente $0{,}25$ m. Il vantaggio meccanico vale:",tipo:"aperta",num:{v:4,tol:0.01},sol:["4"],spieg:"$V=b_m/b_r=1/0{,}25=4$. La resistenza può essere quattro volte la forza motrice."},
       {q:"Se $b_m=b_r$, una leva è:",tipo:"scelta",opz:["vantaggiosa","svantaggiosa","indifferente","impossibile"],ok:2,spieg:"Bracci uguali implicano $F_m=F_r$: non si guadagna né si perde forza."},
-      {q:"Una forza di $50$ N agisce con braccio $0{,}4$ m. Quale forza con braccio $0{,}2$ m la equilibra?",tipo:"aperta",num:{v:100,u:"N",tol:0.01},sol:["100","100 N"],spieg:"I momenti devono essere uguali: $50\cdot0{,}4=F\cdot0{,}2$, dunque $F=100$ N."},
+      {q:"Una forza di $50$ N agisce con braccio $0{,}4$ m. Quale forza con braccio $0{,}2$ m la equilibra?",tipo:"aperta",num:{v:100,u:"N",tol:0.01},sol:["100","100 N"],spieg:"I momenti devono essere uguali: $50\\cdot0{,}4=F\\cdot0{,}2$, dunque $F=100$ N."},
       {q:"Quale leva è sicuramente vantaggiosa in forza?",tipo:"scelta",opz:["carriola","avambraccio","pinzetta","forbici con bracci uguali"],ok:0,spieg:"La carriola è di secondo genere e ha il braccio motore maggiore del resistente."},
       {q:"Una porta è più facile da aprire spingendo:",tipo:"scelta",opz:["vicino ai cardini","a metà porta","sulla maniglia","parallelamente alla porta"],ok:2,spieg:"La maniglia è lontana dai cardini: massimizza il braccio e quindi il momento."},
-      {q:"Una leva con $F_r=200$ N, $b_r=0{,}15$ m e $F_m=50$ N richiede un braccio motore di quanti metri?",tipo:"aperta",num:{v:0.6,u:"m",tol:0.01},sol:["0,6","0.6"],spieg:"$b_m=F_r b_r/F_m=200\cdot0{,}15/50=0{,}60$ m."},
+      {q:"Una leva con $F_r=200$ N, $b_r=0{,}15$ m e $F_m=50$ N richiede un braccio motore di quanti metri?",tipo:"aperta",num:{v:0.6,u:"m",tol:0.01},sol:["0,6","0.6"],spieg:"$b_m=F_r b_r/F_m=200\\cdot0{,}15/50=0{,}60$ m."},
       {q:"Se il braccio motore raddoppia mentre tutto il resto resta uguale, la forza motrice necessaria:",tipo:"scelta",opz:["raddoppia","si dimezza","resta uguale","quadruplica"],ok:1,spieg:"Da $F_m=F_r b_r/b_m$, la forza è inversamente proporzionale al braccio motore."},
-      {q:"Un'altalena ha due bambini: $300$ N a $1$ m da un lato. A che distanza deve sedersi un bambino di $500$ N dall'altro lato?",tipo:"aperta",num:{v:0.6,u:"m",tol:0.01},sol:["0,6","0.6"],spieg:"$300\cdot1=500\cdot b$, quindi $b=0{,}60$ m."}
+      {q:"Un'altalena ha due bambini: $300$ N a $1$ m da un lato. A che distanza deve sedersi un bambino di $500$ N dall'altro lato?",tipo:"aperta",num:{v:0.6,u:"m",tol:0.01},sol:["0,6","0.6"],spieg:"$300\\cdot1=500\\cdot b$, quindi $b=0{,}60$ m."}
     ]},
     {n:"Livello 3 - Avanzato", d:"Problemi applicati, versi dei momenti e vantaggio meccanico.", items:[
-      {q:"Una carriola porta $480$ N di carico a $0{,}25$ m dalla ruota. Le mani sono a $1$ m. Forza totale alle mani?",tipo:"aperta",num:{v:120,u:"N",tol:0.01},sol:["120","120 N"],spieg:"$F_m\cdot1=480\cdot0{,}25=120$, quindi servono 120 N."},
+      {q:"Una carriola porta $480$ N di carico a $0{,}25$ m dalla ruota. Le mani sono a $1$ m. Forza totale alle mani?",tipo:"aperta",num:{v:120,u:"N",tol:0.01},sol:["120","120 N"],spieg:"$F_m\\cdot1=480\\cdot0{,}25=120$, quindi servono 120 N."},
       {q:"Una chiave da $0{,}25$ m deve produrre un momento di $50$ N m. Forza perpendicolare necessaria?",tipo:"aperta",num:{v:200,u:"N",tol:0.01},sol:["200","200 N"],spieg:"$F=M/b=50/0{,}25=200$ N."},
       {q:"Per ottenere lo stesso momento con una chiave doppia, la forza richiesta:",tipo:"scelta",opz:["raddoppia","si dimezza","resta uguale","diventa zero"],ok:1,spieg:"Momento fisso: $F=M/b$. Se il braccio raddoppia, la forza si dimezza."},
       {q:"Una leva ha vantaggio meccanico $5$ e deve vincere $750$ N. Forza motrice ideale?",tipo:"aperta",num:{v:150,u:"N",tol:0.01},sol:["150","150 N"],spieg:"$V=F_r/F_m$, quindi $F_m=750/5=150$ N."},
       {q:"Le pinzette sono svantaggiose in forza ma utili perché:",tipo:"scelta",opz:["eliminano il fulcro","danno grande spostamento e precisione all'estremità","aumentano il peso","non hanno resistenza"],ok:1,spieg:"Le leve di terzo genere sacrificano forza per velocità, ampiezza di movimento e controllo."},
       {q:"Una forza di $80$ N applicata a $30°$ rispetto a una chiave è meno efficace che a $90°$ perché:",tipo:"scelta",opz:["il braccio perpendicolare è minore","la massa cambia","il fulcro sparisce","il momento non dipende dall'angolo"],ok:0,spieg:"Conta la componente perpendicolare: spingere a 90° massimizza il braccio efficace."},
-      {q:"Una leva è in equilibrio con $F_m=75$ N e $b_m=0{,}8$ m; la resistenza è $300$ N. Quanto vale $b_r$?",tipo:"aperta",num:{v:0.2,u:"m",tol:0.01},sol:["0,2","0.20"],spieg:"$b_r=F_m b_m/F_r=75\cdot0{,}8/300=0{,}20$ m."},
-      {q:"Una forza motrice di $60$ N con braccio $0{,}5$ m equilibra una resistenza di $150$ N. Braccio resistente?",tipo:"aperta",num:{v:0.2,u:"m",tol:0.01},sol:["0,2","0.20"],spieg:"$b_r=60\cdot0{,}5/150=0{,}20$ m."},
+      {q:"Una leva è in equilibrio con $F_m=75$ N e $b_m=0{,}8$ m; la resistenza è $300$ N. Quanto vale $b_r$?",tipo:"aperta",num:{v:0.2,u:"m",tol:0.01},sol:["0,2","0.20"],spieg:"$b_r=F_m b_m/F_r=75\\cdot0{,}8/300=0{,}20$ m."},
+      {q:"Una forza motrice di $60$ N con braccio $0{,}5$ m equilibra una resistenza di $150$ N. Braccio resistente?",tipo:"aperta",num:{v:0.2,u:"m",tol:0.01},sol:["0,2","0.20"],spieg:"$b_r=60\\cdot0{,}5/150=0{,}20$ m."},
       {q:"In una leva ideale vantaggiosa in forza, il carico rispetto alla mano percorre:",tipo:"scelta",opz:["una distanza maggiore","la stessa distanza","una distanza minore","nessuna distanza"],ok:2,spieg:"Si conserva il lavoro: guadagnare forza significa muovere la mano per una distanza maggiore del carico."},
-      {q:"Un meccanico applica $150$ N a $0{,}40$ m dal fulcro. Il momento vale:",tipo:"aperta",num:{v:60,u:"N m",tol:0.01},sol:["60","60 Nm"],spieg:"$M=150\cdot0{,}40=60$ N m."}
+      {q:"Un meccanico applica $150$ N a $0{,}40$ m dal fulcro. Il momento vale:",tipo:"aperta",num:{v:60,u:"N m",tol:0.01},sol:["60","60 Nm"],spieg:"$M=150\\cdot0{,}40=60$ N m."}
     ]}
   ]
 },
