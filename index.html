@@ -461,8 +461,16 @@ function rispostaGiusta(item){
 
 /* =================== persistenza =================== */
 var CHIAVE = "quaderno-quadretti-progressi";
+/* I progressi sono indicizzati per id di argomento e per indice di livello: aggiungere
+   argomenti o livelli nuovi non li tocca, purché gli id esistenti non cambino mai.
+   Le voci relative a id non più presenti vengono conservate, non cancellate. */
 function caricaLocale(){
-  try{ var raw=localStorage.getItem(CHIAVE); if(raw) return JSON.parse(raw)||{}; }catch(e){}
+  var raw = null;
+  try{ raw = localStorage.getItem(CHIAVE); }catch(e){}
+  if(!raw) return {};
+  try{ var p = JSON.parse(raw); if(p && typeof p==="object") return p; }catch(e){}
+  // salvataggio illeggibile: se ne tiene una copia prima di ripartire da zero
+  try{ localStorage.setItem(CHIAVE+"-copia-"+Date.now(), raw); }catch(e){}
   return {};
 }
 function salvaLocale(){

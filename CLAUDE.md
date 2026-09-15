@@ -32,8 +32,9 @@ percorso relativo.
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
 concetto di funzione e piano cartesiano; proporzionalità diretta e inversa.
 
-**Fisica — 4 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
-legge di Hooke e forza elastica; leve e macchine semplici.
+**Fisica — 5 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
+legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
+di grandezza (convenzione: mantissa < 5 → 10^n, altrimenti 10^(n+1)).
 
 Gli anni dal 2º al 5º compaiono nell'indice come «da aggiungere su richiesta».
 
@@ -56,7 +57,11 @@ riceve `cdot` come testo.
 
 Per estendere:
 
-- **nuovo argomento** → si accoda un oggetto all'array della materia;
+- **nuovo argomento** → si accoda un oggetto all'array della materia. Gli **id degli
+  argomenti esistenti non vanno mai cambiati** e gli argomenti non vanno rimossi: i progressi
+  in `localStorage` sono indicizzati per id e per indice di livello, quindi un modulo
+  aggiunto in coda non li tocca, un id rinominato li rende irraggiungibili. `verifica.js`
+  confronta gli id con quelli dell'ultimo commit e segnala quelli spariti;
 - **nuovo anno** → si aggiunge una chiave dentro `anni`, nell'array `MATERIE` in `index.html`;
 - **nuova materia** → un nuovo file di contenuti più una voce in `MATERIE`.
 

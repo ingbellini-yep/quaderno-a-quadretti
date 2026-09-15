@@ -39,7 +39,8 @@ for (const [m, a] of tutti) {
   // guide allo svolgimento: presenza, forma, ultimo passo coerente con la risposta
   let nGuide = 0; const senza = [], incoerenti = [];
   const testoPiano = s => String(s == null ? "" : s).replace(/<[^>]+>/g, "");
-  const pulisci = s => normalizza(testoPiano(String(s)).replace(/\{,\}/g, ",").replace(/\\(cdot|,|;|!|quad|qquad|left|right|circ|text|mathrm|,)/g, "").replace(/\$/g, "").replace(/&deg;/g, "°").replace(/&nbsp;/g, " "));
+  // testo LaTeX in forma confrontabile: via comandi, graffe e dollari, così a\cdot10^{n} diventa "a10n" come nel correttore
+  const pulisci = s => normalizza(testoPiano(String(s)).replace(/\{,\}/g, ",").replace(/\\(cdot|,|;|!|quad|qquad|left|right|circ|text|mathrm|tfrac|dfrac|frac|to)/g, "").replace(/[{}$]/g, "").replace(/&deg;/g, "°").replace(/&nbsp;/g, " "));
   a.livelli.forEach((l, li) => l.items.forEach((it, ii) => {
     const tag = `L${li + 1}.${ii + 1}`;
     if (!Array.isArray(it.guida) || !it.guida.length) { senza.push(tag); return; }
@@ -50,7 +51,12 @@ for (const [m, a] of tutti) {
     let ok = false;
     if (it.tipo === "scelta") ok = ultimo.indexOf(pulisci(it.opz[it.ok])) >= 0;
     else if (it.num) {
-      const nums = (testoPiano(rUlt).replace(/\{,\}/g, ",").match(/-?\d+(?:[.,]\d+)?/g) || []).map(x => parseFloat(x.replace(",", ".")));
+      const t = testoPiano(rUlt).replace(/\{,\}/g, ",").replace(/\\,/g, "");
+      const nums = (t.match(/-?\d+(?:[.,]\d+)?/g) || []).map(x => parseFloat(x.replace(",", ".")));
+      // valori scritti in notazione scientifica: a\cdot10^{n} e 10^{n}
+      let m, reS = /(-?\d+(?:[.,]\d+)?)\\cdot10\^\{?(-?\d+)\}?/g, reP = /(?:^|[^\d])10\^\{?(-?\d+)\}?/g;
+      while ((m = reS.exec(t))) nums.push(parseFloat(m[1].replace(",", ".")) * Math.pow(10, parseInt(m[2], 10)));
+      while ((m = reP.exec(t))) nums.push(Math.pow(10, parseInt(m[1], 10)));
       ok = nums.some(n => Math.abs(n - it.num.v) <= Math.max(it.num.tol || 0, 1e-9));
     } else ok = it.sol.some(s => ultimo.indexOf(pulisci(s)) >= 0);
     if (!ok) incoerenti.push(tag);
@@ -79,5 +85,18 @@ for (const [m, a] of tutti) {
   if (fallimenti.length) console.log("     " + fallimenti.slice(0, 10).join("; "));
   errori += problemi.length + fallimenti.length;
 }
+// stabilità degli id: i progressi in localStorage sono indicizzati per id di argomento,
+// quindi un id presente nell'ultimo commit non deve sparire né cambiare
+try {
+  const { execSync } = require("child_process");
+  const idsOra = new Set(tutti.map(([, a]) => a.id));
+  for (const f of ["contenuti-matematica.js", "contenuti-fisica.js"]) {
+    const prima = execSync(`git show HEAD:${f}`, { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const idsPrima = [...prima.matchAll(/^\s*id: "([^"]+)"/gm)].map(x => x[1]);
+    const spariti = idsPrima.filter(id => !idsOra.has(id));
+    if (spariti.length) { console.log(`ERR ${f}: id presenti nell'ultimo commit ma non più nel file (i progressi salvati andrebbero persi): ${spariti.join(", ")}`); errori += spariti.length; }
+    else console.log(`OK  ${f}: tutti gli id dell'ultimo commit sono ancora presenti (${idsPrima.length})`);
+  }
+} catch (e) { console.log("(controllo degli id rispetto all'ultimo commit saltato: " + String(e.message).split("\n")[0] + ")"); }
 console.log(errori ? `\nERRORI: ${errori}` : "\nTutto a posto.");
 process.exit(errori ? 1 : 0);
