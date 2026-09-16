@@ -299,6 +299,16 @@ h1,h2,h3,h4{font-family:"Asap","Segoe UI",sans-serif;font-weight:700;letter-spac
 
 /* ---------- importazione ---------- */
 .importa{display:grid; gap:10px}
+.profilo{display:grid; gap:10px; margin-bottom:14px}
+.profilo .campi{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px}
+.profilo input{width:100%; padding:9px 12px; border:1.5px solid var(--line-strong); border-radius:12px; background:var(--surface-2); color:var(--ink); font:inherit; font-size:14.5px}
+.profilo input:focus{border-color:var(--accent); outline:none; background:var(--surface)}
+.profilo label{display:grid; gap:4px; font-size:12.5px; color:var(--muted)}
+.scheda-riga{display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px 14px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2); font-size:14.5px}
+.scheda-riga b{font-size:16px}
+.scheda-riga .mail{color:var(--muted); font-family:"IBM Plex Mono",monospace; font-size:13px}
+.trasferimento h3{font-size:15px; margin:16px 0 6px; font-family:"Asap",sans-serif}
+.codice-out{width:100%; min-height:70px; padding:9px 12px; border:1px dashed var(--line-strong); border-radius:12px; background:var(--surface-2); color:var(--ink-2); font-family:"IBM Plex Mono",monospace; font-size:11.5px; word-break:break-all}
 .importa label{font-size:13.5px; color:var(--ink-2); display:inline-flex; gap:6px; align-items:center}
 .importa select{font:inherit; padding:5px 8px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface); color:var(--ink)}
 .importa textarea{width:100%; min-height:110px; padding:10px 13px; border:1.5px solid var(--line-strong); border-radius:12px;
@@ -637,6 +647,7 @@ function renderHome(){
        '<p class="sez-sub" style="margin-top:14px">I livelli superati e i punteggi restano salvati nel browser di questo dispositivo: riaprendo la pagina si riprende da dove si era arrivati. Cambiando computer o cancellando i dati del browser, invece, si riparte da zero.</p>'+
        '</div></section>';
 
+  h += htmlProgressi();
   h += htmlImport();
 
   var daRiprendere = [];
@@ -669,6 +680,7 @@ function renderHome(){
   Array.prototype.forEach.call($main.querySelectorAll("[data-vai]"), function(b){
     b.addEventListener("click", function(){ apriArgomento(b.getAttribute("data-vai")); });
   });
+  collegaProgressi();
   collegaImport();
   tex($main);
 }
@@ -1247,6 +1259,238 @@ async function generaGuidaAI(bottone){
   }catch(e){
     bottone.disabled=false; bottone.textContent="Non sono riuscito a generare la guida: riprova";
   }
+}
+
+/* =================== scheda, esportazione e importazione dei progressi =================== */
+/* La scheda (nome, nickname, email) resta in questo browser. Nel file esportato vanno nome,
+   nickname e un'impronta dell'email, non l'indirizzo: serve solo a riconoscere, all'importazione,
+   se il file appartiene alla stessa persona. */
+var CHIAVE_PROFILO = "quaderno-quadretti-profilo";
+var FORMATO_EXPORT = "quaderno-quadretti-progressi";
+
+function impronta(email){
+  // impronta a 53 bit (cyrb53) dell'email normalizzata: non è crittografica, ma dall'impronta non si risale all'indirizzo
+  var s = String(email||"").trim().toLowerCase(), h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for(var i=0;i<s.length;i++){ var ch=s.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677); }
+  h1 = Math.imul(h1^(h1>>>16),2246822507); h1 ^= Math.imul(h2^(h2>>>13),3266489909);
+  h2 = Math.imul(h2^(h2>>>16),2246822507); h2 ^= Math.imul(h1^(h1>>>13),3266489909);
+  return (4294967296*(2097151&h2)+(h1>>>0)).toString(16);
+}
+function caricaProfilo(){
+  try{ var r=localStorage.getItem(CHIAVE_PROFILO); if(r){ var p=JSON.parse(r); if(p&&typeof p==="object") return p; } }catch(e){}
+  return {};
+}
+function salvaProfilo(p){ try{ localStorage.setItem(CHIAVE_PROFILO, JSON.stringify(p)); }catch(e){} }
+function emailValida(e){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(e||"").trim()); }
+function profiloCompleto(p){ return !!(p && String(p.nick||"").trim() && emailValida(p.email)); }
+
+function pacchettoExport(){
+  var p = caricaProfilo();
+  return { formato:FORMATO_EXPORT, versione:1, esportato:new Date().toISOString(),
+           profilo:{ nome:String(p.nome||""), nick:String(p.nick||""), impronta:p.impronta || impronta(p.email) },
+           progressi:S.prog, importati:caricaImportati() };
+}
+/* Codice testuale: "QQ1Z:" + base64 del JSON compresso (deflate) se il browser lo sa fare,
+   altrimenti "QQ1:" + base64 del JSON. */
+function bytesToB64(u8){ var s=""; for(var i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s); }
+function b64ToBytes(b){ var s=atob(b), u=new Uint8Array(s.length); for(var i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; }
+async function codificaPacchetto(obj){
+  var bytes = new TextEncoder().encode(JSON.stringify(obj));
+  if(typeof CompressionStream==="function"){
+    try{
+      var buf = await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer();
+      return "QQ1Z:"+bytesToB64(new Uint8Array(buf));
+    }catch(e){}
+  }
+  return "QQ1:"+bytesToB64(bytes);
+}
+async function decodificaPacchetto(testo){
+  var t = String(testo||"").trim();
+  if(t.charAt(0)==="{") return JSON.parse(t);
+  var m = t.match(/^(QQ1Z?):([\s\S]+)$/);
+  if(!m) throw new Error("Il testo incollato non è un codice dei progressi del Quaderno.");
+  var bytes = b64ToBytes(m[2].replace(/\s+/g,""));
+  if(m[1]==="QQ1Z"){
+    if(typeof DecompressionStream!=="function") throw new Error("Questo browser non sa leggere il codice compresso: usa il file JSON.");
+    var buf = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer();
+    bytes = new Uint8Array(buf);
+  }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function validaPacchetto(obj){
+  if(!obj || typeof obj!=="object" || obj.formato!==FORMATO_EXPORT) throw new Error("Il file non è un'esportazione dei progressi del Quaderno.");
+  if(Number(obj.versione)>1) throw new Error("Il file viene da una versione più recente del Quaderno: ricarica la pagina e riprova.");
+  var prog = (obj.progressi && typeof obj.progressi==="object") ? obj.progressi : {}, pulito = {}, livelli = 0;
+  for(var id in prog){
+    if(!prog[id] || typeof prog[id]!=="object") continue;
+    pulito[id] = {};
+    for(var l in prog[id]){
+      var v = prog[id][l];
+      if(!v || typeof v!=="object" || typeof v.migliore!=="number") continue;
+      pulito[id][l] = { migliore:v.migliore, tentativi:Number(v.tentativi)||0, ultimo:v.ultimo, data:v.data, soglia:v.soglia, totale:v.totale };
+      livelli++;
+    }
+  }
+  var imp = Array.isArray(obj.importati) ? obj.importati.filter(function(x){ return x && x.id && x.titolo && Array.isArray(x.livelli); }) : [];
+  var pr = (obj.profilo && typeof obj.profilo==="object") ? obj.profilo : {};
+  return { profilo:{ nome:String(pr.nome||""), nick:String(pr.nick||""), impronta:String(pr.impronta||"") },
+           progressi:pulito, importati:imp, livelli:livelli, esportato:obj.esportato };
+}
+function fondiProgressi(remoti){
+  // per ogni livello: miglior risultato, somma dei tentativi, ultimo esito dal salvataggio più recente
+  for(var id in remoti){
+    if(!S.prog[id]) S.prog[id] = {};
+    for(var l in remoti[id]){
+      var r = remoti[id][l], loc = S.prog[id][l];
+      if(!loc){ S.prog[id][l] = r; continue; }
+      var rec = (String(r.data||"") > String(loc.data||"")) ? r : loc;
+      S.prog[id][l] = { migliore:Math.max(loc.migliore||0, r.migliore||0), tentativi:(loc.tentativi||0)+(r.tentativi||0),
+                        ultimo:rec.ultimo, data:rec.data, soglia:rec.soglia||loc.soglia, totale:rec.totale||loc.totale };
+    }
+  }
+}
+function applicaPacchetto(v, modo){
+  if(modo==="sostituisci"){ S.prog = v.progressi; salvaImportati(v.importati); }
+  else {
+    fondiProgressi(v.progressi);
+    var lista = caricaImportati();
+    v.importati.forEach(function(x){ if(!lista.some(function(y){ return y.id===x.id; })) lista.push(x); });
+    salvaImportati(lista);
+  }
+  salvaProgressi(); montaImportati(); renderRail();
+}
+async function importaProgressi(testo, esito){
+  esito.hidden = false;
+  var v;
+  try{ v = validaPacchetto(await decodificaPacchetto(testo)); }
+  catch(e){ esito.className="esito-imp no"; esito.textContent = "Importazione non riuscita: "+(e && e.message ? e.message : "file non leggibile."); return; }
+  var p = caricaProfilo(), locImp = p.impronta || (p.email ? impronta(p.email) : "");
+  var modo, nota;
+  if(!locImp && !String(p.nick||"").trim()){
+    // nessuna scheda in questo browser: si adotta quella del file (senza email, che nel file non c'è)
+    salvaProfilo({ nome:v.profilo.nome, nick:v.profilo.nick, email:"", impronta:v.profilo.impronta });
+    modo = "fondi"; nota = " Scheda di «"+v.profilo.nick+"» adottata: aggiungi l'email per poter esportare da qui.";
+  } else if(locImp && v.profilo.impronta && locImp===v.profilo.impronta){
+    modo = "fondi"; nota = " Il file è tuo: i risultati sono stati uniti tenendo il migliore per ogni livello.";
+  } else {
+    if(!confirm("Il file appartiene a «"+(v.profilo.nick||"un'altra persona")+"», non a «"+(p.nick||"te")+"».\n"+
+                "Vuoi sostituire TUTTI i progressi e la scheda di questo browser con quelli del file?")){
+      esito.className="esito-imp no"; esito.textContent="Importazione annullata: nulla è stato modificato."; return;
+    }
+    salvaProfilo({ nome:v.profilo.nome, nick:v.profilo.nick, email:"", impronta:v.profilo.impronta });
+    modo = "sostituisci"; nota = " Scheda e progressi sostituiti con quelli di «"+v.profilo.nick+"».";
+  }
+  applicaPacchetto(v, modo);
+  renderHome();
+  var e2 = document.getElementById("pr-esito");
+  if(e2){ e2.hidden=false; e2.className="esito-imp ok"; e2.textContent = "Importati "+v.livelli+" livelli e "+v.importati.length+" batterie personali."+nota; }
+}
+function nomeFile(p){
+  var d = new Date(), g = d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);
+  return "quaderno-"+slug(p.nick||"progressi")+"-"+g+".json";
+}
+function indirizzoPagina(){
+  return /^https?:/.test(location.protocol) ? location.origin+location.pathname : "la pagina del Quaderno a Quadretti";
+}
+function htmlProgressi(){
+  var p = caricaProfilo(), completo = profiloCompleto(p);
+  var h = '<section class="scheda"><div class="scheda-in sezione"><h2>I tuoi progressi</h2>'+
+    '<p class="sez-sub">Porta i progressi su un altro browser o dispositivo: esporta da qui, importa là. Serve una scheda con nickname ed email, '+
+    'che resta in questo browser: nel file finisce solo un’impronta dell’email, non l’indirizzo.</p>'+
+    '<div class="profilo" id="pr-profilo">';
+  if(completo){
+    h += '<div class="scheda-riga"><b>'+esc(p.nick)+'</b>'+(p.nome?'<span>'+esc(p.nome)+'</span>':'')+'<span class="mail">'+esc(p.email)+'</span>'+
+         '<button class="btn piccolo ghost" type="button" id="pr-modifica" style="margin-left:auto">Modifica</button></div>';
+  }
+  h += '<div id="pr-form"'+(completo?' hidden':'')+'><div class="campi">'+
+       '<label>Nome <input type="text" id="pr-nome" autocomplete="name" value="'+esc(p.nome||"")+'"></label>'+
+       '<label>Nickname <input type="text" id="pr-nick" autocomplete="nickname" value="'+esc(p.nick||"")+'"></label>'+
+       '<label>Email <input type="email" id="pr-email" autocomplete="email" value="'+esc(p.email||"")+'"></label></div>'+
+       '<div class="azioni" style="margin-top:8px"><button class="btn piccolo" type="button" id="pr-salva">Salva la scheda</button>'+
+       (completo?'<button class="btn piccolo ghost" type="button" id="pr-annulla">Annulla</button>':'')+
+       '<span class="suggerimento" style="margin:0">Nome facoltativo; nickname ed email servono per esportare.</span></div></div>'+
+       '</div>'+
+    '<div class="trasferimento"><h3>Esporta</h3>'+
+    '<div class="azioni" style="margin-top:0">'+
+    '<button class="btn" type="button" id="pr-scarica">Scarica il file</button>'+
+    '<button class="btn neutro" type="button" id="pr-copia">Copia il codice</button>'+
+    '<button class="btn neutro" type="button" id="pr-email-btn">Invia via email</button></div>'+
+    '<p class="suggerimento">«Invia via email» apre il tuo programma di posta con il messaggio già scritto e il codice nel testo: devi solo premere Invia. '+
+    'Sull’altro browser incolla il codice, oppure carica il file, nella casella qui sotto.</p>'+
+    '<div class="codice-out" id="pr-codice" hidden></div>'+
+    '<h3>Importa</h3>'+
+    '<div class="importa"><label style="font-size:13.5px;color:var(--ink-2)">File <input type="file" id="pr-file" accept=".json,application/json,.txt"></label>'+
+    '<textarea id="pr-testo" placeholder="…oppure incolla qui il codice ricevuto (inizia con QQ1)" aria-label="Codice dei progressi"></textarea>'+
+    '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="pr-importa">Importa</button></div>'+
+    '<div class="esito-imp" id="pr-esito" hidden></div></div></div>'+
+    '</div></section>';
+  return h;
+}
+function collegaProgressi(){
+  var salva = document.getElementById("pr-salva"); if(!salva) return;
+  var esito = document.getElementById("pr-esito"), form = document.getElementById("pr-form");
+  function avviso(cls, msg){ esito.hidden=false; esito.className="esito-imp "+cls; esito.textContent=msg; }
+  function richiediScheda(){
+    var p = caricaProfilo();
+    if(profiloCompleto(p)) return p;
+    form.hidden = false; document.getElementById("pr-nick").focus();
+    avviso("no", "Per esportare compila la scheda: servono nickname ed email.");
+    return null;
+  }
+  salva.addEventListener("click", function(){
+    var p = caricaProfilo(), nuovo = { nome:document.getElementById("pr-nome").value.trim(), nick:document.getElementById("pr-nick").value.trim(), email:document.getElementById("pr-email").value.trim() };
+    if(!nuovo.nick || !emailValida(nuovo.email)){ avviso("no", "Servono un nickname e un’email valida."); return; }
+    nuovo.impronta = impronta(nuovo.email);
+    if(p.impronta && p.impronta!==nuovo.impronta && !p.email &&
+       !confirm("L’email è diversa da quella del file importato in precedenza: i file esportati d’ora in poi avranno un’altra impronta. Continuare?")) return;
+    salvaProfilo(nuovo); renderHome();
+    var e2=document.getElementById("pr-esito"); if(e2){ e2.hidden=false; e2.className="esito-imp ok"; e2.textContent="Scheda salvata in questo browser."; }
+  });
+  var mod = document.getElementById("pr-modifica"); if(mod) mod.addEventListener("click", function(){ form.hidden=false; document.getElementById("pr-nome").focus(); });
+  var ann = document.getElementById("pr-annulla"); if(ann) ann.addEventListener("click", function(){ form.hidden=true; });
+
+  document.getElementById("pr-scarica").addEventListener("click", function(){
+    var p = richiediScheda(); if(!p) return;
+    var blob = new Blob([JSON.stringify(pacchettoExport(), null, 1)], {type:"application/json"});
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nomeFile(p);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+    avviso("ok", "File «"+a.download+"» pronto: caricalo nell’altro browser dalla casella «Importa».");
+  });
+  document.getElementById("pr-copia").addEventListener("click", async function(){
+    var p = richiediScheda(); if(!p) return;
+    var codice = await codificaPacchetto(pacchettoExport()), box = document.getElementById("pr-codice");
+    box.hidden = false; box.textContent = codice;
+    try{ await navigator.clipboard.writeText(codice); avviso("ok", "Codice copiato negli appunti ("+codice.length+" caratteri). Incollalo nell’altro browser nella casella «Importa»."); }
+    catch(e){ avviso("ok", "Codice pronto qui sotto: selezionalo e copialo."); }
+  });
+  document.getElementById("pr-email-btn").addEventListener("click", async function(){
+    var p = richiediScheda(); if(!p) return;
+    var codice = await codificaPacchetto(pacchettoExport());
+    var oggetto = "Quaderno a Quadretti – progressi di "+p.nick;
+    var corpo = "Ciao "+(p.nome||p.nick)+",\n"+
+      "questi sono i tuoi progressi del Quaderno a Quadretti, esportati il "+new Date().toLocaleString("it-IT")+".\n\n"+
+      "Per importarli su un altro browser: apri "+indirizzoPagina()+", vai alla sezione «I tuoi progressi», "+
+      "incolla il codice qui sotto nella casella «Importa» e premi il pulsante Importa.\n\n"+codice+"\n";
+    var url = "mailto:"+encodeURIComponent(p.email)+"?subject="+encodeURIComponent(oggetto)+"&body="+encodeURIComponent(corpo);
+    if(url.length > 7000){
+      avviso("no", "Il codice è troppo lungo per il testo di un’email ("+codice.length+" caratteri): scarica il file e allegalo al messaggio.");
+      return;
+    }
+    var a = document.createElement("a"); a.href = url; a.id = "pr-mailto"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    avviso("ok", "Si apre il programma di posta con il messaggio per "+p.email+": controlla e premi Invia.");
+  });
+
+  var file = document.getElementById("pr-file"), testo = document.getElementById("pr-testo");
+  file.addEventListener("change", function(){
+    var f = file.files && file.files[0]; if(!f) return;
+    var rd = new FileReader(); rd.onload = function(){ testo.value = String(rd.result||""); }; rd.readAsText(f);
+  });
+  document.getElementById("pr-importa").addEventListener("click", function(){
+    var raw = testo.value.trim();
+    if(!raw){ avviso("no", "Scegli il file oppure incolla il codice."); return; }
+    importaProgressi(raw, esito);
+  });
 }
 
 /* =================== importazione di esercizi =================== */

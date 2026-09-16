@@ -15,7 +15,7 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 
 | File | Ruolo | Nel repo |
 |---|---|---|
-| `index.html` | motore del sito (stili, indice, quiz, correttore, revisione, svolgimento guidato, importazione). Formato claude.ai: **senza** i tag `<!doctype>`, `<html>`, `<head>`, `<body>` | sì |
+| `index.html` | motore del sito (stili, indice, quiz, correttore, revisione, svolgimento guidato, importazione di esercizi, scheda e trasferimento dei progressi). Formato claude.ai: **senza** i tag `<!doctype>`, `<html>`, `<head>`, `<body>` | sì |
 | `contenuti-matematica.js` | contenuti di matematica | sì |
 | `contenuti-fisica.js` | contenuti di fisica | sì |
 | `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic; **va rigenerato** da `index.html` dopo ogni modifica al motore (testa fino a `<title>` + `index.html` + `</body></html>`) | no (solo locale) |
@@ -94,6 +94,20 @@ Per estendere:
   `quaderno-quadretti-importati`), montate nell'indice come argomenti con etichetta «tuo» e
   hanno palestra, revisione e svolgimento guidato come gli altri. Un modello di file è
   mostrato nella pagina (`MODELLO_IMPORT` in `index.html`).
+- **Scheda e trasferimento dei progressi** (sezione «I tuoi progressi» nella pagina
+  iniziale): scheda facoltativa con nome, nickname ed email, salvata in `localStorage`
+  (chiave `quaderno-quadretti-profilo`); nickname ed email sono richiesti solo per esportare.
+  L'esportazione produce un file JSON (`formato: "quaderno-quadretti-progressi"`, `versione:
+  1`, con profilo, progressi e batterie importate) oppure un codice testuale `QQ1Z:` (base64
+  del JSON compresso con deflate; `QQ1:` senza compressione se il browser non lo supporta),
+  copiabile o inserito in un'email precompilata via `mailto:` all'indirizzo della scheda (il
+  browser non può spedire da solo: l'utente preme Invia nel suo programma di posta). Nel file
+  va solo un'**impronta** dell'email (cyrb53 dell'indirizzo normalizzato), mai l'indirizzo.
+  All'importazione: browser senza scheda → adotta la scheda del file (senza email) e carica
+  tutto; stessa impronta → fusione (miglior risultato per livello, tentativi sommati, ultimo
+  esito dal salvataggio più recente, batterie mancanti aggiunte); impronta diversa → conferma
+  esplicita per sostituire scheda e progressi, altrimenti nulla cambia. Non esiste invio
+  automatico né sincronizzazione: servirebbe un backend.
 - I progressi si salvano in `localStorage`, così la pagina resta condivisibile con un link
   e senza account. La capability `db` di claude.ai **non** va ridichiarata: rende
   l'Artifact interno all'organizzazione e non condivisibile. `claude.use("db")` che
