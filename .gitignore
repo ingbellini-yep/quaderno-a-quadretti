@@ -1,3 +1,6 @@
 # File solo locali, non pubblicati
 quaderno-locale.html
 LEGGIMI.md
+
+# Cartella creata dall'installatore delle skill: i file vivono in .claude/skills
+.agents/
