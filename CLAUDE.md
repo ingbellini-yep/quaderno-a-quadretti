@@ -22,9 +22,26 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
 | `CLAUDE.md` | queste istruzioni di progetto | sì |
 | `.gitignore` | esclude i due file solo locali | sì |
+| `.claude/skills/frontend-design/` | skill `frontend-design` di Anthropic: linee guida di design per chi lavora sull'interfaccia del sito | sì |
+| `skills-lock.json` | origine e impronta delle skill installate | sì |
 
 I tre file pubblicati devono restare nella stessa cartella: la pagina carica i contenuti per
 percorso relativo.
+
+### Skill installate
+
+`frontend-design` (Anthropic) è installata nel repository, così è disponibile a chiunque
+apra il progetto con Claude Code, anche nelle sessioni in cloud. Comando usato:
+
+```bash
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+```
+
+L'installatore mette i file in `.agents/skills/` e crea un collegamento simbolico in
+`.claude/skills/`: qui i file sono invece **copiati** direttamente in
+`.claude/skills/frontend-design/`, perché su Windows git non ricrea i collegamenti
+simbolici e la skill non verrebbe trovata. Se in futuro si rilancia il comando qui sopra,
+va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il collegamento).
 
 ## Stato dei contenuti
 
