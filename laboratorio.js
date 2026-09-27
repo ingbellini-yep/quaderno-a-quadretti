@@ -78,6 +78,8 @@
 
    ESPRESSIONI: + - * / ^ e parentesi; moltiplicazione sottintesa (2t,
    3(t+1)); virgola decimale; sin cos tan sqrt abs exp ln log; pi, e.
+   Anche i simboli della barra (simboli.js): apici (x², x⁴, xⁿ), √(…), ∛(…),
+   radici con indice numerico (⁴√(…)); √2 e √x si possono scrivere senza parentesi.
    Un eventuale primo membro ("s =", "s(t) =") viene ignorato.
    ===================================================================== */
 
@@ -130,6 +132,11 @@ function intervalloBello(min, max, n, zero){
 var FUNZIONI = {sin:Math.sin, sen:Math.sin, cos:Math.cos, tan:Math.tan, tg:Math.tan, sqrt:Math.sqrt,
   radq:Math.sqrt, abs:Math.abs, exp:Math.exp, ln:Math.log, log:function(x){ return Math.log(x)/Math.LN10; }};
 var COSTANTI = {pi:Math.PI, "π":Math.PI, e:Math.E};
+/* radici: cbrt e rad2…rad12 (ⁿ√ della barra dei simboli); con indice dispari anche di numeri negativi */
+FUNZIONI.cbrt = Math.cbrt || function(x){ return x < 0 ? -Math.pow(-x, 1/3) : Math.pow(x, 1/3); };
+for(var ir=2; ir<=12; ir++) FUNZIONI["rad"+ir] = (function(n){ return function(x){ return (n%2 && x < 0) ? -Math.pow(-x, 1/n) : Math.pow(x, 1/n); }; })(ir);
+var APICI_NUM = {"\u2070":"0","\u00b9":"1","\u00b2":"2","\u00b3":"3","\u2074":"4","\u2075":"5","\u2076":"6","\u2077":"7","\u2078":"8","\u2079":"9","\u207f":"n","\u207a":"+","\u207b":"-"};
+function daApici(s){ return s.split("").map(function(c){ return APICI_NUM[c]; }).join(""); }
 
 function Errore(msg){ var e = new Error(msg); e.espressione = true; return e; }
 
@@ -140,8 +147,17 @@ function preparaTesto(src){
     if(s.indexOf("=", i+1)>=0) throw Errore("C'è più di un segno «=».");
     s = s.slice(i+1);
   }
+  /* simboli della barra: ⁴√ -> rad4, ∛ -> cbrt, √ -> sqrt, apici -> ^ */
+  s = s.replace(/([\u2070\u00b9\u00b2\u00b3\u2074-\u2079\u207f]+)\u221a/g, function(m, ap){
+         var n = daApici(ap);
+         if(!/^\d+$/.test(n)) throw Errore("Una radice con indice letterale non si può calcolare: scrivi l'indice come numero.");
+         if(Number(n) < 2 || Number(n) > 12) throw Errore("L'indice della radice deve essere fra 2 e 12.");
+         return "rad"+n;
+       })
+       .replace(/\^\(([^()]*)\)\u221a/g, function(){ throw Errore("Una radice con indice letterale non si può calcolare: scrivi l'indice come numero."); })
+       .replace(/\u221b/g,"cbrt").replace(/\u221a/g,"sqrt")
+       .replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079\u207f\u207a\u207b]+/g, function(ap){ return "^("+daApici(ap)+")"; });
   s = s.replace(/[−–—]/g,"-").replace(/[×·∙⋅]/g,"*").replace(/:/g,"/")
-       .replace(/²/g,"^2").replace(/³/g,"^3")
        .replace(/[₀-₉]/g, function(c){ return String(c.charCodeAt(0)-0x2080); })
        .replace(/(\d),(\d)/g,"$1.$2");
   if(!s.trim()) throw Errore("L'espressione è vuota.");
@@ -229,9 +245,12 @@ function compila(src, variabili){
       p++;
       var tipo = noti[x.v], nome = x.v;
       if(tipo==="f"){
-        if(!prendi("(")) throw Errore("Dopo «"+nome+"» serve la parentesi: "+nome+"(…).");
-        var arg = espr();
-        if(!prendi(")")) throw Errore("Manca una parentesi chiusa «)».");
+        var arg;
+        if(prendi("(")){
+          arg = espr();
+          if(!prendi(")")) throw Errore("Manca una parentesi chiusa «)».");
+        } else if(/^(sqrt|radq|cbrt|rad\d+)$/.test(nome)) arg = primario();   /* √2, √x senza parentesi */
+        else throw Errore("Dopo «"+nome+"» serve la parentesi: "+nome+"(…).");
         var fn = FUNZIONI[nome];
         return function(s){ return fn(arg(s)); };
       }
@@ -1116,6 +1135,7 @@ function tracciatore(host, spec){
     var n = mk("span","nome", NOMI[slot]);
     var inp = mk("input"); inp.type = "text"; inp.value = testo || ""; inp.spellcheck = false; inp.autocomplete = "off";
     inp.setAttribute("aria-label","Equazione "+NOMI[slot]); inp.placeholder = ay+" = …";
+    inp.setAttribute("data-simboli", "dentro:.lab-riga");
     var tog = mk("button","btn ghost piccolo","Togli"); tog.type = "button";
     var err = mk("div","lab-errore"); err.hidden = true; err.id = "lab-err-"+(++conta);
     inp.setAttribute("aria-describedby", err.id);
@@ -1298,6 +1318,7 @@ function segni(host, spec){
     if(cur.sistema){
       var lS = mk("label"); lS.appendChild(mk("span", null, "Disequazioni del sistema, una per riga"));
       var ta = mk("textarea"); ta.rows = Math.max(2, cur.sistema.length); ta.spellcheck = false;
+      ta.setAttribute("data-simboli", "dopo:.lab-segni-ctrl");
       ta.value = cur.sistema.map(function(d){ return typeof d==="string" ? d : d.f+" "+d.verso+" 0"; }).join("\n");
       lS.appendChild(ta); box.appendChild(lS);
       ta.addEventListener("input", function(){ cur.sistema = ta.value.split("\n").filter(function(s){ return s.trim(); }); aggiorna(); });
@@ -1305,6 +1326,7 @@ function segni(host, spec){
       var campo = function(nome, val, fn){
         var l = mk("label"); l.appendChild(mk("span", null, nome));
         var i = mk("input"); i.type = "text"; i.value = val; i.spellcheck = false; i.autocomplete = "off";
+        i.setAttribute("data-simboli", "dopo:.lab-segni-ctrl");
         i.addEventListener("input", function(){ fn(i.value); aggiorna(); });
         l.appendChild(i); box.appendChild(l);
       };

@@ -19,6 +19,7 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `contenuti-matematica.js` | contenuti di matematica | sì |
 | `contenuti-fisica.js` | contenuti di fisica | sì |
 | `laboratorio.js` | motori grafici condivisi: grafici delle equazioni (`Laboratorio.grafico`), animazione del moto su rotaia (`Laboratorio.moto`), tracciatore di equazioni scritte dallo studente, lettore di espressioni senza `eval`, controlli usati da `verifica.js`. Schema delle scene in testa al file | sì |
+| `simboli.js` | barra dei simboli cliccabili (potenze, radici con indice, frazione, confronti) che compare sotto ogni campo con l'attributo `data-simboli`: risposte del quiz, svolgimento guidato, importazione di esercizi, espressioni del laboratorio. Registro di gruppi espandibile: istruzioni in testa al file | sì |
 | `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic; **va rigenerato** da `index.html` dopo ogni modifica al motore (testa fino a `<title>` + `index.html` + `</body></html>`) | no (solo locale) |
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
 | `CLAUDE.md` | queste istruzioni di progetto | sì |
@@ -26,10 +27,11 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `.claude/skills/frontend-design/` | skill `frontend-design` di Anthropic: linee guida di design per chi lavora sull'interfaccia del sito | sì |
 | `skills-lock.json` | origine e impronta delle skill installate | sì |
 
-I quattro file pubblicati (`index.html`, `laboratorio.js` e i due file dei contenuti) devono
-restare nella stessa cartella: la pagina li carica per percorso relativo. Anche su claude.ai
-`laboratorio.js` va pubblicato insieme alla pagina, come i contenuti; se manca, al posto delle
-figure compare un avviso e il resto funziona.
+I cinque file pubblicati (`index.html`, `laboratorio.js`, `simboli.js` e i due file dei
+contenuti) devono restare nella stessa cartella: la pagina li carica per percorso relativo.
+Anche su claude.ai `laboratorio.js` e `simboli.js` vanno pubblicati insieme alla pagina, come
+i contenuti; se `laboratorio.js` manca, al posto delle figure compare un avviso, se manca
+`simboli.js` i campi funzionano senza barra.
 
 ### Skill installate
 
@@ -166,10 +168,24 @@ Per estendere:
   l'Artifact interno all'organizzazione e non condivisibile. `claude.use("db")` che
   restituisce `null` è previsto e innocuo.
 
+## Barra dei simboli
+
+Sotto ogni campo in cui si scrive un'espressione compare una barra di tasti (`simboli.js`):
+x², x³, xⁿ (esponente numerico o letterale, chiesto al momento), √, ∛, ⁿ√ (indice chiesto al
+momento), frazione (la selezione diventa il numeratore), =, >, <, ≥, ≤. Con del testo
+selezionato potenze e radici lo racchiudono. I gruppi sono registrati con
+`Simboli.registra({...})` e possono dipendere da anno e materia: esponenziali e logaritmi e
+goniometria sono già predisposti per il 3º-5º anno e, negli altri anni, restano raggiungibili
+con «Altri simboli». Per un nuovo campo basta l'attributo `data-simboli` (con `dopo:selettore`
+o `dentro:selettore` per scegliere dove mettere la barra). Ogni nuovo simbolo va reso
+equivalente alle forme scritte a mano sia in `normalizza` (index.html) sia nel lettore di
+espressioni di `laboratorio.js`, e aggiunto ai test della barra in `verifica.js`.
+
 ## Correttore delle risposte aperte
 
 Normalizza prima del confronto: maiuscole/minuscole, spazi, segno di moltiplicazione
-omesso, `x^2` ≡ `x2` ≡ `x²`, virgola decimale ≡ punto, unità di misura facoltativa.
+omesso, `x^2` ≡ `x2` ≡ `x²` ≡ `x^(2)`, `√(2)` ≡ `√2` ≡ `sqrt(2)`, `∛8` ≡ `³√8` ≡ `cbrt(8)`,
+`≥` ≡ `>=`, `≤` ≡ `<=`, `(1)/(2)` ≡ `1/2`, virgola decimale ≡ punto, unità di misura facoltativa.
 Per i risultati numerici il confronto è sul valore, con tolleranza dichiarata esercizio
 per esercizio.
 
@@ -186,8 +202,9 @@ per esercizio.
    lezioni e a volte rifiuta le connessioni automatiche: in quel caso confermare la pagina
    almeno tramite l'indice di un motore di ricerca.
 
-Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide e di grafici e scene del
-laboratorio) sono automatizzate in `verifica.js`: `node verifica.js .` dalla cartella del progetto.
+Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide, di grafici e scene del
+laboratorio e delle equivalenze della barra dei simboli) sono automatizzate in `verifica.js`:
+`node verifica.js .` dalla cartella del progetto.
 
 Dopo modifiche a `laboratorio.js` o all'impaginazione conviene provare la pagina in un browser
 vero, anche a 390 px di larghezza e in tema scuro: le figure si adattano alla larghezza del

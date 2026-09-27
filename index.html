@@ -352,6 +352,7 @@ window.MathJax = {
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
 <script src="laboratorio.js" charset="utf-8"></script>
+<script src="simboli.js" charset="utf-8"></script>
 <script src="contenuti-matematica.js" charset="utf-8"></script>
 <script src="contenuti-fisica.js" charset="utf-8"></script>
 
@@ -455,17 +456,26 @@ function setAccento(materia){
 }
 
 /* =================== correzione delle risposte =================== */
+/* Le forme scritte con la barra dei simboli (simboli.js) valgono quanto quelle scritte a mano:
+   x² ≡ x^2 ≡ x^(2) ≡ x2, √(2) ≡ √2 ≡ sqrt(2), ∛8 ≡ ³√8 ≡ cbrt(8), ≥ ≡ >=, ≤ ≡ <=,
+   (1)/(2) ≡ 1/2. Le parentesi si tolgono solo attorno a un numero o a una lettera. */
 function normalizza(t){
   return String(t==null?"":t).toLowerCase().trim()
     .replace(/[−–—]/g,"-")
-    .replace(/²/g,"^2").replace(/³/g,"^3").replace(/⁴/g,"^4")
+    .replace(/>=|=>/g,"≥").replace(/<=|=</g,"≤")
+    .replace(/sqrt|radq/g,"√").replace(/cbrt/g,"∛").replace(/∛/g,"³√")
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹ⁿ⁺⁻]+/g, function(s){ return "^"+s.split("").map(function(c){ return APICI[c]; }).join(""); })
     .replace(/\s+/g,"")
     .replace(/[×·∙*]/g,"")
+    .replace(/\^\(([a-z0-9.,]+)\)/g,"^$1")
+    .replace(/√\(([a-z0-9.,]+)\)/g,"√$1")
+    .replace(/\(([a-z0-9.,]+)\)\//g,"$1/").replace(/\/\(([a-z0-9.,]+)\)/g,"/$1")
     .replace(/\^/g,"")
     .replace(/,/g,".")
     .replace(/^\+/,"")
     .replace(/[.;]+$/,"");
 }
+var APICI = {"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","ⁿ":"n","⁺":"+","⁻":"-"};
 function numeroDa(t){
   var m = String(t==null?"":t).replace(/\s/g,"").replace(",",".").match(/-?\d+(?:\.\d+)?/);
   return m ? parseFloat(m[0]) : null;
@@ -870,10 +880,10 @@ function renderDomanda(){
     h += '</div>';
   } else {
     h += '<div class="campo">'+
-         '<input type="text" id="risposta" autocomplete="off" autocapitalize="off" spellcheck="false" '+
+         '<input type="text" id="risposta" data-simboli autocomplete="off" autocapitalize="off" spellcheck="false" '+
          'placeholder="Scrivi qui la tua risposta'+(item.num&&item.num.u?" (in "+esc(item.num.u)+")":"")+'" aria-label="La tua risposta">'+
          '</div>'+
-         '<p class="suggerimento">Scrivi il risultato in forma semplice: per le potenze va bene sia <code>x^2</code> sia <code>x2</code>, il segno di moltiplicazione può essere omesso e la virgola decimale vale quanto il punto.</p>';
+         '<p class="suggerimento">Scrivi il risultato in forma semplice: per potenze, radici, frazioni e disuguaglianze puoi usare i tasti che compaiono sotto il campo, oppure scrivere <code>x^2</code>, <code>sqrt(2)</code>, <code>&gt;=</code>. Il segno di moltiplicazione può essere omesso e la virgola decimale vale quanto il punto.</p>';
   }
 
   if(guidato){
@@ -1191,7 +1201,7 @@ function htmlGuida(){
   if(g.i<n){
     var p=g.passi[g.i];
     h+='<div class="passaggio"><div class="sugg"><b>Passo '+(g.i+1)+'</b><span>'+esc(p.s)+'</span></div><div class="corpo">'+
-       '<textarea id="g-testo" placeholder="Scrivi qui il passaggio, come lo scriveresti sul quaderno" aria-label="Il tuo passaggio"></textarea>'+
+       '<textarea id="g-testo" data-simboli placeholder="Scrivi qui il passaggio, come lo scriveresti sul quaderno" aria-label="Il tuo passaggio"></textarea>'+
        '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="g-fatto">Ho scritto il passaggio</button>'+
        '<button class="btn ghost" type="button" id="g-mostra">Mostrami il passaggio</button></div>'+
        '<p class="suggerimento" style="margin-top:0">Ctrl+Invio conferma. Dopo la conferma vedrai il passaggio atteso e il suggerimento successivo.</p></div></div>';
@@ -1637,7 +1647,7 @@ function htmlImport(){
     '<label>Materia, se il file non la indica <select id="imp-materia">'+MATERIE.map(function(m){ return '<option value="'+m.id+'">'+esc(m.nome)+'</option>'; }).join("")+'</select></label>'+
     '<label>Anno <select id="imp-anno">'+ANNI.map(function(y){ return '<option value="'+y+'">'+y+'º</option>'; }).join("")+'</select></label>'+
     '<label>File <input type="file" id="imp-file" accept=".json,application/json"></label></div>'+
-    '<textarea id="imp-testo" placeholder="…oppure incolla qui il testo JSON" aria-label="JSON da importare"></textarea>'+
+    '<textarea id="imp-testo" data-simboli placeholder="…oppure incolla qui il testo JSON: per potenze, radici, frazioni e disuguaglianze usa i tasti che compaiono sotto" aria-label="JSON da importare"></textarea>'+
     '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="imp-vai">Importa</button>'+
     '<details class="modello"><summary>Mostra un file di esempio</summary><pre>'+esc(JSON.stringify(MODELLO_IMPORT,null,2))+'</pre></details></div>'+
     '<div class="esito-imp" id="imp-esito" hidden></div></div>';
@@ -1699,6 +1709,16 @@ S.prog = caricaLocale();
 montaImportati();
 renderRail();
 renderHome();
+
+/* barra dei simboli (simboli.js): i gruppi mostrati dipendono da materia e anno correnti;
+   per l'importazione valgono materia e anno scelti nei menu della sezione */
+if(window.Simboli) window.Simboli.contesto(function(el){
+  if(el && el.id==="imp-testo"){
+    var m = document.getElementById("imp-materia"), a = document.getElementById("imp-anno");
+    return {materia: m ? m.value : null, anno: a ? Number(a.value) : null};
+  }
+  return {materia: S.materia ? S.materia.id : null, anno: S.anno};
+});
 
 /* Indice laterale su schermi larghi: se entra nella finestra resta fermo sotto l'intestazione;
    se è più alto della finestra scorre insieme alla pagina (verso il basso fino a mostrarne il
