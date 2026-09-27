@@ -82,6 +82,16 @@
      Il grafico evidenzia sull'asse x le soluzioni; sotto compaiono Δ, concavità,
      zeri (anche irrazionali, scritti con i radicali) e vertice.
 
+   SCHEMA DELLA REGOLA DI RUFFINI  {tipo:"ruffini", ...}
+     polinomio: "x^3 - 6x^2 + 11x - 6"   oppure  coefficienti:[1, -6, 11, -6]
+                (i termini mancanti hanno coefficiente 0: x^3 - 7x + 6 -> [1, 0, -7, 6])
+     radice:   1                 divisione per x − radice (anche "-1/2")
+     mostra:   "tutto" (predefinito) | "passo" (si riempie un'operazione alla volta) |
+               "dati" (solo coefficienti e radice: per gli esercizi, non svela la risposta)
+     candidati: true             elenco degli zeri razionali ±p/q con il valore di P
+     editabile: true             lo studente scrive polinomio e radice (implica mostra:"passo")
+     soluzione: false            nasconde quoziente, resto e scomposizione
+
    SCHEMA DEL TRACCIATORE  {tipo:"tracciatore", ...}
      titolo, testo, assi, unita, x, equazioni:["s = 20 + 10t", "s = 100 - 5t"]
 
@@ -342,6 +352,26 @@ var CSS = [
 ".lab-par>span{grid-column:1/3}",
 ".lab-par output{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:13px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink,#111)}",
 ".lab-par input{width:100%}",
+".lab-ruf-titolo{margin:0;font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:14px;color:var(--ink,#111)}",
+".lab-ruf-fig{display:grid;gap:10px;justify-items:start;overflow-x:auto}",
+".lab-ruf{border-collapse:collapse;font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:15px;font-variant-numeric:tabular-nums;color:var(--ink,#111)}",
+".lab-ruf td{min-width:2.6em;height:2.1em;padding:2px 10px;text-align:right;white-space:nowrap}",
+".lab-ruf td.lab-ruf-rad{border-right:2px solid var(--ink-2,#444);min-width:2.2em}",
+".lab-ruf td.lab-ruf-a{color:var(--lab-s2,#eb6834);font-weight:600}",
+".lab-ruf td.lab-ruf-resto{border-left:2px solid var(--ink-2,#444)}",
+".lab-ruf tr.lab-ruf-somma td{border-top:2px solid var(--ink-2,#444)}",
+".lab-ruf td.lab-ruf-p{color:var(--ink-2,#444)}",
+".lab-ruf td.lab-ruf-b{font-weight:600;color:var(--lab-s1,#2a78d6)}",
+".lab-ruf td.lab-ruf-r{color:var(--lab-s3,#1baf7a)}",
+".lab-ruf td.lab-ruf-attiva{background:var(--accent-soft,#eef);box-shadow:inset 0 0 0 2px var(--accent,#2a78d6);border-radius:6px}",
+".lab-ruf td.lab-ruf-fonte{background:var(--surface-2,#f6f6fa)}",
+".lab-ruf-nota{margin:0;font-size:14px;color:var(--ink-2,#444);min-height:1.4em}",
+".lab-comandi{display:flex;flex-wrap:wrap;gap:8px}",
+".lab-ruf-cand{display:grid;gap:6px}",
+".lab-ruf-lista{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}",
+".lab-ruf-lista button{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:13px;padding:5px 9px;border:1px solid var(--line,#ddd);border-radius:999px;background:var(--surface,#fff);color:var(--ink-2,#444);cursor:pointer}",
+".lab-ruf-lista button:disabled{cursor:default;opacity:1}",
+".lab-ruf-lista li.zero button{border-color:var(--lab-s3,#1baf7a);color:var(--ink,#111);font-weight:600;box-shadow:inset 0 0 0 1px var(--lab-s3,#1baf7a)}",
 ".lab-par-verso select{grid-column:1/3;justify-self:start;min-width:120px;font:inherit;font-size:14px;padding:6px 9px;border:1.5px solid var(--line-strong,#bbb);border-radius:10px;background:var(--surface,#fff);color:var(--ink,#111)}",
 ".lab-eventi{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:13.5px;color:var(--ink-2,#444)}",
 ".lab-eventi b{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-weight:500;color:var(--ink,#111)}",
@@ -1592,6 +1622,223 @@ function parabola(host, spec){
   return {elemento:root, ridisegna:ridisegna};
 }
 
+/* ================= REGOLA DI RUFFINI =================
+   Divisione di un polinomio P(x) per il binomio x − a con lo schema classico: in alto i
+   coefficienti (anche gli zeri dei termini mancanti), a sinistra a, sotto la riga i
+   coefficienti del quoziente e, separato, il resto. Il resto è P(a) (teorema del resto).
+   Con mostra:"passo" lo schema si riempie un'operazione alla volta (abbasso, moltiplico,
+   sommo); con candidati:true compare l'elenco degli zeri razionali possibili ±p/q con il
+   valore di P in ciascuno. */
+var APICI_CIFRE = ["⁰","¹","²","³","⁴","⁵","⁶","⁷","⁸","⁹"];
+function apiceDi(n){ return String(n).split("").map(function(c){ return APICI_CIFRE[+c]; }).join(""); }
+/* coefficienti (dal grado massimo al termine noto) di un polinomio scritto come espressione,
+   oppure di un elenco di numeri separati da punto e virgola */
+function coefficientiDi(src, v){
+  if(Array.isArray(src)) return src.map(Number);
+  var t = String(src==null ? "" : src).trim();
+  if(!t) throw Errore("Scrivi il polinomio, per esempio x^3 - 6x^2 + 11x - 6.");
+  if(t.indexOf(";") >= 0 && !/[a-zA-Z]/.test(t)){
+    return t.split(";").map(function(q){ q = q.trim(); if(!q) throw Errore("Manca un coefficiente fra due punti e virgola."); return compila(q, []).f({}); });
+  }
+  var f = funzione(t.replace(/^[^=]*=/, ""), v, {}), N = 8, xs = [], A = [], i, j;
+  for(i=0; i<=N; i++) xs.push(i-4);
+  for(i=0; i<=N; i++){ var riga = []; for(j=0; j<=N; j++) riga.push(Math.pow(xs[i], j)); riga.push(f(xs[i])); A.push(riga); }
+  if(A.some(function(r){ return !isFinite(r[N+1]); })) throw Errore("L'espressione non è un polinomio in "+v+".");
+  for(i=0; i<=N; i++){
+    var piv = i; for(j=i+1; j<=N; j++) if(Math.abs(A[j][i]) > Math.abs(A[piv][i])) piv = j;
+    var tmp = A[i]; A[i] = A[piv]; A[piv] = tmp;
+    for(j=0; j<=N; j++) if(j!==i){ var m = A[j][i]/A[i][i]; for(var k=i; k<=N+1; k++) A[j][k] -= m*A[i][k]; }
+  }
+  var c = []; for(i=0; i<=N; i++){ var z = A[i][N+1]/A[i][i], r = Math.round(z*1e6)/1e6; c.push(Math.abs(z-r) < 1e-7 ? r : z); }
+  var val = function(x){ var s = 0; for(var q=N; q>=0; q--) s = s*x + c[q]; return s; };
+  if(![0.5, 1.7, -2.3, 4.6].every(function(x){ var y = f(x); return isFinite(y) && Math.abs(y-val(x)) <= 1e-6*(1+Math.abs(y)); }))
+    throw Errore("L'espressione non è un polinomio in "+v+" di grado al massimo "+N+".");
+  while(c.length > 1 && Math.abs(c[c.length-1]) < 1e-12) c.pop();
+  return c.reverse().map(function(q){ return Math.abs(q) < 1e-12 ? 0 : q; });
+}
+/* testo di un polinomio dai coefficienti: [1,-6,11,-6] -> "x³ − 6x² + 11x − 6" */
+function testoCoefficienti(c, v){
+  var n = c.length-1, t = [];
+  c.forEach(function(k, i){
+    if(Math.abs(k) < 1e-12) return;
+    var g = n-i, m = frazione(Math.abs(k)), lett = g===0 ? "" : v+(g > 1 ? apiceDi(g) : "");
+    if(lett && m==="1") m = ""; else if(lett && /[\/√ ]/.test(m)) m = "("+m+")";
+    t.push({neg:k < 0, txt:m+lett});
+  });
+  if(!t.length) return "0";
+  return t.map(function(q, i){ return (i ? (q.neg ? " − " : " + ") : (q.neg ? "−" : "")) + q.txt; }).join("");
+}
+function testoDivisore(a, v){
+  if(Math.abs(a) < 1e-12) return v;
+  return v+(a > 0 ? " − " : " + ")+frazione(Math.abs(a));
+}
+function schemaRuffini(c, a){
+  var b = [c[0]], p = [null];
+  for(var i=1; i<c.length; i++){ p.push(a*b[i-1]); b.push(c[i]+p[i]); }
+  var pulito = function(x){ return x==null ? x : (Math.abs(x) < 1e-9*(1+Math.abs(a)) ? 0 : x); };
+  return {c:c, a:a, p:p.map(pulito), b:b.map(pulito), resto:pulito(b[b.length-1]), quoziente:b.slice(0, -1).map(pulito)};
+}
+function divisori(n){ var d = []; n = Math.abs(Math.round(n)); for(var k=1; k<=n; k++) if(n%k===0) d.push(k); return d; }
+/* zeri razionali possibili ±p/q (p divide il termine noto, q il coefficiente direttivo), con P in ciascuno */
+function candidatiRuffini(c){
+  var interi = c.every(function(k){ return Math.abs(k-Math.round(k)) < 1e-9; });
+  if(!interi) return null;
+  var k = c.slice(); while(k.length > 1 && Math.abs(k[k.length-1]) < 1e-12) k.pop();
+  if(k.length < 2) return null;
+  var ps = divisori(k[k.length-1]), qs = divisori(k[0]), visti = {}, out = [];
+  ps.forEach(function(p){ qs.forEach(function(q){ [p/q, -p/q].forEach(function(r){
+    var chiave = r.toFixed(9); if(visti[chiave]) return; visti[chiave] = true;
+    var val = 0; c.forEach(function(x){ val = val*r + x; });
+    out.push({r:r, P:Math.abs(val) < 1e-9 ? 0 : val});
+  }); }); });
+  out.sort(function(x, y){ return Math.abs(x.r)-Math.abs(y.r) || y.r-x.r; });
+  return {lista:out, zeroInZero:Math.abs(c[c.length-1]) < 1e-12};
+}
+function ruffini(host, spec){
+  iniettaStile();
+  var root = mk("div","lab-scena lab-ruffini");
+  host.appendChild(root);
+  testata(root, spec);
+  var v = spec.variabile || "x";
+  var cur = {pol:spec.polinomio!=null ? spec.polinomio : (spec.coefficienti||[]).join("; "), radice:String(spec.radice!=null ? spec.radice : 1)};
+  var modo = spec.mostra || (spec.editabile ? "passo" : "tutto");
+  var err = null, ris = null, passo = 0;
+  if(spec.editabile){
+    var box = mk("div","lab-segni-ctrl");
+    var campo = function(nome, val, fn){
+      var l = mk("label"); l.appendChild(mk("span", null, nome));
+      var i = mk("input"); i.type = "text"; i.value = val; i.spellcheck = false; i.autocomplete = "off";
+      i.setAttribute("data-simboli", "dopo:.lab-segni-ctrl");
+      i.addEventListener("input", function(){ fn(i.value); passo = 0; aggiorna(); });
+      l.appendChild(i); box.appendChild(l); return i;
+    };
+    campo("Polinomio P("+v+")", cur.pol, function(s){ cur.pol = s; });
+    var campoA = campo("Divido per "+v+" − a, con a =", cur.radice, function(s){ cur.radice = s; });
+    box.appendChild(mk("p","lab-aiuto","Scrivi il polinomio come nel quaderno (x^3 - 7x + 6) oppure i coefficienti separati da punto e virgola (1; 0; -7; 6)."));
+    root.appendChild(box);
+  }
+  err = mk("p","lab-errore-blocco"); err.hidden = true; err.setAttribute("aria-live","polite"); root.appendChild(err);
+  var testaDiv = mk("p","lab-ruf-titolo"); root.appendChild(testaDiv);
+  var fig = mk("figure","lab-fig lab-ruf-fig"); root.appendChild(fig);
+  var tab = mk("table","lab-ruf"); fig.appendChild(tab);
+  var nota = mk("p","lab-ruf-nota"); nota.setAttribute("aria-live","polite");
+  var comandi = null, bPasso, bTutto, bDaCapo;
+  if(modo==="passo"){
+    fig.appendChild(nota);
+    comandi = mk("div","lab-comandi");
+    bPasso = mk("button","btn piccolo","Passo successivo"); bPasso.type = "button";
+    bTutto = mk("button","btn neutro piccolo","Tutto lo schema"); bTutto.type = "button";
+    bDaCapo = mk("button","btn ghost piccolo","Ricomincia"); bDaCapo.type = "button";
+    comandi.appendChild(bPasso); comandi.appendChild(bTutto); comandi.appendChild(bDaCapo);
+    fig.appendChild(comandi);
+    bPasso.addEventListener("click", function(){ passo = Math.min(passo+1, totale()); disegna(); });
+    bTutto.addEventListener("click", function(){ passo = totale(); disegna(); });
+    bDaCapo.addEventListener("click", function(){ passo = 0; disegna(); });
+  }
+  var sol = mk("div","lab-soluzione"); sol.setAttribute("aria-live","polite");
+  if(spec.soluzione!==false && modo!=="dati") root.appendChild(sol);
+  var cand = null;
+  if(spec.candidati){ cand = mk("div","lab-ruf-cand"); root.appendChild(cand); }
+
+  function totale(){ return ris ? 2*(ris.c.length-1)+1 : 0; }
+  /* numero fra parentesi se negativo o frazionario: 1 · (−6) */
+  function fraP(x){ var t = frazione(x); return /^−|\//.test(t) ? "("+t+")" : t; }
+  function cella(txt, cls){ var td = mk("td", cls||null, txt==null ? "" : txt); return td; }
+  function disegna(){
+    if(!ris) return;
+    var n = ris.c.length-1, k = modo==="tutto" ? totale() : (modo==="dati" ? 0 : passo);
+    /* passo 1: abbasso b0; passi 2i e 2i+1: moltiplico (p_i) e sommo (b_i) */
+    var visP = function(i){ return k >= 2*i; }, visB = function(i){ return i===0 ? k >= 1 : k >= 2*i+1; };
+    var attiva = modo!=="passo" || k===0 ? null : (k===1 ? {b:0} : (k%2===0 ? {p:k/2} : {b:(k-1)/2}));
+    tab.innerHTML = "";
+    var r1 = mk("tr"), r2 = mk("tr"), r3 = mk("tr","lab-ruf-somma");
+    r1.appendChild(cella("", "lab-ruf-rad"));
+    r2.appendChild(cella(frazione(ris.a), "lab-ruf-rad lab-ruf-a"));
+    r3.appendChild(cella("", "lab-ruf-rad"));
+    for(var i=0; i<=n; i++){
+      var ultimo = i===n ? " lab-ruf-resto" : "";
+      var t1 = cella(frazione(ris.c[i]), "lab-ruf-c"+ultimo);
+      var t2 = cella(i===0 || !visP(i) ? "" : frazione(ris.p[i]), "lab-ruf-p"+ultimo+(attiva && attiva.p===i ? " lab-ruf-attiva" : ""));
+      var t3 = cella(visB(i) ? frazione(ris.b[i]) : "", "lab-ruf-b"+ultimo+(attiva && attiva.b===i ? " lab-ruf-attiva" : "")+(i===n && visB(i) ? " lab-ruf-r" : ""));
+      if(attiva && ((attiva.p===i) || (attiva.b===i && i > 0))) t1.className += " lab-ruf-fonte";
+      r1.appendChild(t1); r2.appendChild(t2); r3.appendChild(t3);
+    }
+    if(attiva && attiva.p) r3.children[attiva.p].className += " lab-ruf-fonte";
+    tab.appendChild(r1); tab.appendChild(r2); tab.appendChild(r3);
+    tab.setAttribute("aria-label", "Schema di Ruffini: coefficienti "+ris.c.map(frazione).join(", ")+"; a = "+frazione(ris.a)+
+      (k >= totale() ? "; quoziente "+ris.quoziente.map(frazione).join(", ")+"; resto "+frazione(ris.resto) : ""));
+    if(modo==="passo"){
+      var txt;
+      if(k===0) txt = "Premi «Passo successivo»: il primo coefficiente si abbassa sotto la riga.";
+      else if(k===1) txt = "Abbasso il primo coefficiente: "+frazione(ris.b[0])+".";
+      else if(attiva.p) txt = "Moltiplico a per l'ultimo numero trovato: "+fraP(ris.a)+" · "+fraP(ris.b[attiva.p-1])+" = "+frazione(ris.p[attiva.p])+", e lo scrivo nella colonna successiva.";
+      else txt = "Sommo in colonna: "+frazione(ris.c[attiva.b])+" + "+fraP(ris.p[attiva.b])+" = "+frazione(ris.b[attiva.b])+(attiva.b===n ? ": è il resto." : ".");
+      nota.textContent = txt;
+      bPasso.disabled = k >= totale(); bTutto.disabled = k >= totale(); bDaCapo.disabled = k===0;
+    }
+    sol.innerHTML = "";
+    if(k >= totale()){
+      var Q = testoCoefficienti(ris.quoziente, v), D = testoDivisore(ris.a, v), P = testoCoefficienti(ris.c, v);
+      var r1s = mk("div"); r1s.appendChild(document.createTextNode("Quoziente: ")); r1s.appendChild(mk("b", null, "Q("+v+") = "+Q)); sol.appendChild(r1s);
+      var r2s = mk("div"); r2s.appendChild(document.createTextNode("Resto: ")); r2s.appendChild(mk("b", null, "R = P("+frazione(ris.a)+") = "+frazione(ris.resto))); sol.appendChild(r2s);
+      var r3s = mk("div"), fatt = "("+D+")"+(ris.quoziente.length > 1 ? "("+Q+")" : "·"+Q);
+      if(ris.quoziente.length===1 && Math.abs(ris.quoziente[0]-1) < 1e-12) fatt = D;
+      r3s.appendChild(document.createTextNode(ris.resto===0 ? "Scomposizione: " : "Quindi: "));
+      /* zero frazionario p/q: (x − p/q)·Q(x) = (qx − p)·Q(x)/q quando Q ha coefficienti multipli di q */
+      var den = /^−?(\d+)\/(\d+)$/.exec(frazione(ris.a));
+      if(ris.resto===0 && den){
+        var qd = +den[2], Qq = ris.quoziente.map(function(k){ return k/qd; });
+        if(Qq.every(function(k){ return Math.abs(k-Math.round(k)) < 1e-9; })){
+          var lin = testoCoefficienti([qd, -ris.a*qd], v);
+          fatt += " = ("+lin+")"+(Qq.length > 1 ? "("+testoCoefficienti(Qq, v)+")" : (Math.abs(Qq[0]-1) < 1e-12 ? "" : "·"+testoCoefficienti(Qq, v)));
+        }
+      }
+      r3s.appendChild(mk("b", null, "P("+v+") = "+(ris.resto===0 ? fatt : fatt+(ris.resto > 0 ? " + " : " − ")+frazione(Math.abs(ris.resto)))));
+      sol.appendChild(r3s);
+      sol.hidden = false;
+    } else sol.hidden = true;
+  }
+  function candidati(){
+    if(!cand) return;
+    cand.innerHTML = "";
+    var info = candidatiRuffini(ris.c);
+    if(!info){ cand.appendChild(mk("p","lab-aiuto","La ricerca degli zeri razionali serve con coefficienti interi.")); return; }
+    var h = mk("p","lab-aiuto");
+    h.textContent = "Zeri razionali possibili: ±p/q, con p divisore del termine noto e q divisore del coefficiente direttivo."+(info.zeroInZero ? " Il termine noto è 0: prima si raccoglie "+v+"." : "");
+    cand.appendChild(h);
+    var ul = mk("ul","lab-ruf-lista");
+    info.lista.forEach(function(q){
+      var li = mk("li", q.P===0 ? "zero" : null);
+      var b = mk("button", null, "P("+frazione(q.r)+") = "+frazione(q.P)); b.type = "button";
+      b.title = q.P===0 ? frazione(q.r)+" è uno zero: "+testoDivisore(q.r, v)+" divide P("+v+")" : "Prova a dividere per "+testoDivisore(q.r, v);
+      if(spec.editabile) b.addEventListener("click", function(){ cur.radice = frazione(q.r).replace("−","-"); if(campoA) campoA.value = cur.radice; passo = 0; aggiorna(); });
+      else b.disabled = true;
+      li.appendChild(b); ul.appendChild(li);
+    });
+    cand.appendChild(ul);
+  }
+  function aggiorna(){
+    try{
+      var c = coefficientiDi(cur.pol, v);
+      if(c.length < 2) throw Errore("Serve un polinomio di grado almeno 1.");
+      if(Math.abs(c[0]) < 1e-12) throw Errore("Il coefficiente del termine di grado massimo non può essere 0.");
+      var a = compila(String(cur.radice).replace(/−/g,"-"), []).f({});
+      if(!isFinite(a)) throw Errore("Scrivi il valore di a, per esempio 2 oppure -1/2.");
+      ris = schemaRuffini(c, a);
+      err.hidden = true; fig.style.opacity = "";
+    }catch(e){
+      err.textContent = e.message; err.hidden = false; fig.style.opacity = ".45";
+      if(!ris) throw e;
+      return;
+    }
+    testaDiv.innerHTML = "";
+    testaDiv.appendChild(document.createTextNode("("+testoCoefficienti(ris.c, v)+") : ("+testoDivisore(ris.a, v)+")"));
+    disegna(); candidati();
+  }
+  aggiorna();
+  return {elemento:root, risultato:function(){ return ris; }};
+}
+
 /* ================= registro delle scene ================= */
 var TIPI = {
   grafico: function(host, spec){
@@ -1601,7 +1848,8 @@ var TIPI = {
   moto: moto,
   tracciatore: tracciatore,
   segni: segni,
-  parabola: parabola
+  parabola: parabola,
+  ruffini: ruffini
 };
 function registra(tipo, fn){ TIPI[tipo] = fn; }
 function monta(host, spec){
@@ -1687,6 +1935,14 @@ function controlla(spec){
     ["a","b","c"].forEach(function(k){ if(spec[k]!=null && !isFinite(spec[k])) p.push(k+" non valido"); });
     if(spec.verso!=null && !normVerso(spec.verso)) p.push("verso non valido");
     for(var k2 in (spec.cursori||{})){ var lim = spec.cursori[k2]; if(!(Array.isArray(lim) && lim.length===3 && lim[1] > lim[0] && lim[2] > 0)) p.push("cursore «"+k2+"» non valido"); }
+  } else if(tipo==="ruffini"){
+    try{
+      var cr = coefficientiDi(spec.polinomio!=null ? spec.polinomio : spec.coefficienti, spec.variabile || "x");
+      if(cr.length < 2 || !cr[0]) p.push("ruffini: serve un polinomio di grado almeno 1");
+      var ar = compila(String(spec.radice!=null ? spec.radice : 1), []).f({});
+      if(!isFinite(ar)) p.push("ruffini: radice non valida");
+    }catch(e){ p.push("ruffini: "+e.message); }
+    if(spec.mostra!=null && ["tutto","passo","dati"].indexOf(spec.mostra) < 0) p.push("ruffini: mostra non valido");
   } else if(tipo==="tracciatore"){
     intervallo(spec.x, "x");
     var X2 = spec.x || [0,10];
@@ -1704,6 +1960,7 @@ var API = {
   monta: monta, registra: registra, controlla: controlla,
   segni: segni, risolviSegni: risolviSegni, leggiDisequazione: leggiDisequazione,
   parabola: parabola, frazione: frazione,
+  ruffini: ruffini, schemaRuffini: schemaRuffini, coefficientiDi: coefficientiDi, candidatiRuffini: candidatiRuffini, testoCoefficienti: testoCoefficienti,
   tipi: function(){ return Object.keys(TIPI); }
 };
 if(typeof window!=="undefined") window.Laboratorio = API;

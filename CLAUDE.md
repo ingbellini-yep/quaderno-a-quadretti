@@ -50,7 +50,10 @@ va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il co
 
 ## Stato dei contenuti
 
-**Matematica — 7 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
+**Matematica — 8 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
+divisione tra polinomi, teorema del resto e regola di Ruffini (`mat1-ruffini`, inserito subito
+dopo la scomposizione: divisione in colonna, schema di Ruffini, teorema del resto e di Ruffini,
+zeri razionali ±p/q, scomposizione, con lo schema di Ruffini interattivo);
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
 concetto di funzione e piano cartesiano; proporzionalità diretta e inversa; disequazioni di
 primo grado (`mat1-disequazioni`: intervalli, principi di equivalenza, sistemi, studio del
@@ -99,7 +102,12 @@ Campi facoltativi per le figure (schema completo in testa a `laboratorio.js`):
   la soluzione scritta come disuguaglianze e come intervalli; `editabile`, `soluzione:false`,
   `soloFattori:true`), `parabola` (segno del trinomio `ax²+bx+c` con cursori per a, b, c e
   scelta del verso: parabola con le soluzioni evidenziate sull'asse, Δ, concavità, zeri,
-  vertice e soluzione). Gli zeri di primo e secondo grado sono calcolati con la formula, anche
+  vertice e soluzione), `ruffini` (schema di Ruffini per la divisione per x − a: coefficienti con
+  gli zeri dei termini mancanti, riempimento un passo alla volta con `mostra:"passo"`, figura
+  completa con `"tutto"`, solo i dati con `"dati"` negli esercizi; `candidati:true` elenca gli
+  zeri razionali ±p/q con il valore di P, cliccabili se `editabile`; quoziente, resto e
+  scomposizione, anche nella forma intera `(2x − 1)(…)` per gli zeri frazionari). Gli zeri di
+  primo e secondo grado sono calcolati con la formula, anche
   quelli doppi; gli irrazionali si scrivono con i radicali (`1 + √2`, `(1 − √5)/2`) e la retta
   privata di punti come `x ≠ 3`, `S = ℝ ∖ {3}`;
 - `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati,
@@ -125,10 +133,11 @@ il browser lo prenderebbe per l'inizio di un tag HTML e il resto del testo spari
 
 Per estendere:
 
-- **nuovo argomento** → si accoda un oggetto all'array della materia. Gli **id degli
-  argomenti esistenti non vanno mai cambiati** e gli argomenti non vanno rimossi: i progressi
-  in `localStorage` sono indicizzati per id e per indice di livello, quindi un modulo
-  aggiunto in coda non li tocca, un id rinominato li rende irraggiungibili. `verifica.js`
+- **nuovo argomento** → si aggiunge un oggetto all'array della materia e dell'anno, in coda
+  oppure nella posizione didattica giusta (l'ordine dell'array è quello dell'indice). Gli **id
+  degli argomenti esistenti non vanno mai cambiati** e gli argomenti non vanno rimossi: i
+  progressi in `localStorage` sono indicizzati per id e per indice di livello, quindi un
+  modulo aggiunto, ovunque sia, non li tocca, un id rinominato li rende irraggiungibili. `verifica.js`
   confronta gli id con quelli dell'ultimo commit e segnala quelli spariti;
 - **nuovo anno** → si aggiunge una chiave dentro `anni`, nell'array `MATERIE` in `index.html`;
 - **nuova materia** → un nuovo file di contenuti più una voce in `MATERIE`.

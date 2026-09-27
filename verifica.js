@@ -122,10 +122,14 @@ for (const [m, a] of tutti) {
   // zeri dei trinomi nello schema dei segni: razionali come frazioni, irrazionali come radicali
   [[0.5, "1/2"], [1 + Math.SQRT2, "1 + √2"], [(1 - Math.sqrt(5)) / 2, "(1 − √5)/2"], [-Math.sqrt(6) / 2, "−√6/2"]]
     .forEach(([n, atteso]) => { if (Lab.frazione(n) !== atteso) errS.push(`frazione(${n}) = «${Lab.frazione(n)}», non «${atteso}»`); });
+  // schema di Ruffini: coefficienti con gli zeri dei termini mancanti, quoziente e resto
+  const rf = (pol, a) => { const r = Lab.schemaRuffini(Lab.coefficientiDi(pol, "x"), a); return r.quoziente.join(",") + "|" + r.resto; };
+  [["x^3 - 7x + 6", 1, "1,1,-6|0"], ["2x^3 - 5x^2 + 3", 2, "2,-1,-2|-1"], ["x^4 - 16", 2, "1,2,4,8|0"], ["2x^3 - 3x^2 - 11x + 6", 0.5, "2,-2,-12|0"], ["1; 0; -2; 1", 1, "1,1,-1|0"]]
+    .forEach(([pol, a, atteso]) => { const g = rf(pol, a); if (g !== atteso) errS.push(`Ruffini ${pol} : (x − ${a}) = ${g}, non ${atteso}`); });
   eval(fs.readFileSync(path.join(dir, "simboli.js"), "utf8"));
   const Sb = window.Simboli;
   if (!Sb || !["potenze", "confronti", "intervalli"].every(id => Sb.gruppi().some(g => g.id === id)) || Sb.apice("4") !== "⁴") errS.push("simboli.js non caricato o incompleto");
-  console.log((errS.length ? "ERR " : "OK  ") + `barra dei simboli: ${uguali.flat().length} forme equivalenti, ${diversi.length} coppie distinte, ${calcoli.length} calcoli`);
+  console.log((errS.length ? "ERR " : "OK  ") + `barra dei simboli e motori: ${uguali.flat().length} forme equivalenti, ${diversi.length} coppie distinte, ${calcoli.length} calcoli, radicali, 5 schemi di Ruffini`);
   if (errS.length) { console.log("     " + errS.join("; ")); errori += errS.length; }
 }
 // stabilità degli id: i progressi in localStorage sono indicizzati per id di argomento,
