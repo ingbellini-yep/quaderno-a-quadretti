@@ -42,6 +42,16 @@ for (const [m, a] of tutti) {
   (a.laboratorio || []).forEach((sc, i) => figura(sc, "laboratorio " + (i + 1)));
   a.esempi.forEach((e, i) => { if (e.grafico) figura(e.grafico, "esempio " + (i + 1)); });
   a.livelli.forEach((l, li) => l.items.forEach((it, ii) => { if (it.grafico) figura(it.grafico, `L${li + 1}.${ii + 1} grafico`); }));
+  // un «<» seguito da una lettera viene letto dal browser come inizio di un tag HTML e il
+  // resto del testo sparisce (es. $1<x<4$): va scritto con uno spazio, $1 < x < 4$
+  const tagNoti = /^\/?(strong|em|b|i|u|br|sup|sub|span|code|small|p|div|ul|ol|li|a|table|tr|td|th)\b/i;
+  const tagFinti = new Set();
+  const cerca = (o, dove) => {
+    if (typeof o === "string") { let m, re = /<(?=[A-Za-z\/])/g; while ((m = re.exec(o))) if (!tagNoti.test(o.slice(m.index + 1))) tagFinti.add(dove + " «" + o.slice(Math.max(0, m.index - 6), m.index + 6) + "»"); }
+    else if (o && typeof o === "object") for (const k in o) if (k !== "sol" && k !== "k") cerca(o[k], dove + "." + k);
+  };
+  cerca(a, a.id);
+  if (tagFinti.size) problemi.push("«<» seguito da una lettera (metti uno spazio dopo <): " + [...tagFinti].slice(0, 4).join("; "));
   // comandi LaTeX rimasti senza backslash dopo la valutazione JavaScript
   const rotti = JSON.stringify(a).match(/[^\\a-z&](cdot|dfrac|frac|mathrm|qquad|sqrt|times|text|leq|geq|neq)\b/g);
   if (rotti) problemi.push("LaTeX senza backslash: " + [...new Set(rotti.map(s => s.slice(1)))].join(","));
