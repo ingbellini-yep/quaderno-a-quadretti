@@ -19,6 +19,7 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `contenuti-matematica.js` | contenuti di matematica | sì |
 | `contenuti-fisica.js` | contenuti di fisica | sì |
 | `laboratorio.js` | motori grafici condivisi: grafici delle equazioni (`Laboratorio.grafico`), animazione del moto su rotaia (`Laboratorio.moto`), tracciatore di equazioni scritte dallo studente, lettore di espressioni senza `eval`, controlli usati da `verifica.js`. Schema delle scene in testa al file | sì |
+| `simboli.js` | barra dei simboli cliccabili (potenze, radici con indice, frazione, confronti) che compare sotto ogni campo con l'attributo `data-simboli`: risposte del quiz, svolgimento guidato, importazione di esercizi, espressioni del laboratorio. Registro di gruppi espandibile: istruzioni in testa al file | sì |
 | `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic; **va rigenerato** da `index.html` dopo ogni modifica al motore (testa fino a `<title>` + `index.html` + `</body></html>`) | no (solo locale) |
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
 | `CLAUDE.md` | queste istruzioni di progetto | sì |
@@ -26,10 +27,11 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `.claude/skills/frontend-design/` | skill `frontend-design` di Anthropic: linee guida di design per chi lavora sull'interfaccia del sito | sì |
 | `skills-lock.json` | origine e impronta delle skill installate | sì |
 
-I quattro file pubblicati (`index.html`, `laboratorio.js` e i due file dei contenuti) devono
-restare nella stessa cartella: la pagina li carica per percorso relativo. Anche su claude.ai
-`laboratorio.js` va pubblicato insieme alla pagina, come i contenuti; se manca, al posto delle
-figure compare un avviso e il resto funziona.
+I cinque file pubblicati (`index.html`, `laboratorio.js`, `simboli.js` e i due file dei
+contenuti) devono restare nella stessa cartella: la pagina li carica per percorso relativo.
+Anche su claude.ai `laboratorio.js` e `simboli.js` vanno pubblicati insieme alla pagina, come
+i contenuti; se `laboratorio.js` manca, al posto delle figure compare un avviso, se manca
+`simboli.js` i campi funzionano senza barra.
 
 ### Skill installate
 
@@ -48,14 +50,19 @@ va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il co
 
 ## Stato dei contenuti
 
-**Matematica — 6 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
+**Matematica — 7 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
-concetto di funzione e piano cartesiano; proporzionalità diretta e inversa.
+concetto di funzione e piano cartesiano; proporzionalità diretta e inversa; disequazioni di
+primo grado (`mat1-disequazioni`: intervalli, principi di equivalenza, sistemi, studio del
+segno, fratte, con lo schema dei segni interattivo). Le disequazioni di secondo grado, che
+richiedono la parabola, andranno nel 2º anno.
 
-**Fisica — 6 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
+**Fisica — 7 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
 di grandezza (convenzione: mantissa < 5 → 10^n, altrimenti 10^(n+1)); moto rettilineo
-uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed esercizi).
+uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed esercizi);
+moto rettilineo uniformemente accelerato (`fis1-mrua`: accelerazione, frenate, inseguimenti,
+caduta libera con g = 9,8 m/s², quattro scene di laboratorio con grafico accelerazione-tempo).
 
 Gli anni dal 2º al 5º compaiono nell'indice come «da aggiungere su richiesta».
 
@@ -76,10 +83,17 @@ Campi facoltativi per le figure (schema completo in testa a `laboratorio.js`):
 
 - `laboratorio` nell'argomento: elenco di scene interattive, mostrate nella sezione
   «Laboratorio» fra formulario ed esempi. Tipi: `moto` (carrelli su rotaia con legge oraria
-  `s(t)` o moto a tratti, stroboscopia, fotocellule, cursori dei parametri, grafici s-t e v-t
-  sincronizzati), `grafico`, `tracciatore` (lo studente scrive le equazioni);
-- `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati)
-  mostrato sotto il testo, nel quiz, nella revisione e nello svolgimento guidato.
+  `s(t)` anche di secondo grado, oppure moto a tratti con velocità e accelerazione per tratto;
+  stroboscopia, fotocellule, cursori dei parametri, frecce di velocità e accelerazione, grafici
+  s-t e v-t sincronizzati e, con `grafici:["st","vt","at"]`, anche a-t), `grafico`,
+  `tracciatore` (lo studente scrive le equazioni), `segni` (schema dei segni di un prodotto o
+  di un quoziente di fattori, oppure di un sistema di disequazioni, con la soluzione scritta
+  come disuguaglianze e come intervalli; `editabile`, `soluzione:false`, `soloFattori:true`);
+- `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati,
+  anche schemi dei segni) mostrato sotto il testo, nel quiz, nella revisione e nello
+  svolgimento guidato. Nei grafici `evidenzia:{serie, verso}` segna sull'asse x dove la
+  funzione è > 0, ≥ 0, < 0 o ≤ 0 (lettura grafica di una disequazione). Negli esercizi uno
+  schema dei segni non deve svelare la risposta: `soluzione:false, soloFattori:true`.
 
 Le espressioni si scrivono come nel quaderno (`20+10t`, `s0+v*t`, virgola decimale ammessa).
 Stile delle figure: tratti sottili, griglia leggera, al massimo 4 serie con i colori validati
@@ -91,6 +105,10 @@ Nuovi tipi di scena (moto accelerato, molla, leva, piano inclinato...) si aggiun
 Nelle stringhe JavaScript i comandi LaTeX vanno scritti con backslash **doppio**
 (`\\cdot`, `\\frac`, `\\,`): con il backslash singolo JavaScript lo scarta e MathJax
 riceve `cdot` come testo.
+
+Il segno `<` seguito da una lettera va scritto con uno spazio (`$1 < x < 4$`, non `$1<x<4$`):
+il browser lo prenderebbe per l'inizio di un tag HTML e il resto del testo sparirebbe.
+`verifica.js` lo controlla.
 
 Per estendere:
 
@@ -150,10 +168,24 @@ Per estendere:
   l'Artifact interno all'organizzazione e non condivisibile. `claude.use("db")` che
   restituisce `null` è previsto e innocuo.
 
+## Barra dei simboli
+
+Sotto ogni campo in cui si scrive un'espressione compare una barra di tasti (`simboli.js`):
+x², x³, xⁿ (esponente numerico o letterale, chiesto al momento), √, ∛, ⁿ√ (indice chiesto al
+momento), frazione (la selezione diventa il numeratore), =, >, <, ≥, ≤. Con del testo
+selezionato potenze e radici lo racchiudono. I gruppi sono registrati con
+`Simboli.registra({...})` e possono dipendere da anno e materia: esponenziali e logaritmi e
+goniometria sono già predisposti per il 3º-5º anno e, negli altri anni, restano raggiungibili
+con «Altri simboli». Per un nuovo campo basta l'attributo `data-simboli` (con `dopo:selettore`
+o `dentro:selettore` per scegliere dove mettere la barra). Ogni nuovo simbolo va reso
+equivalente alle forme scritte a mano sia in `normalizza` (index.html) sia nel lettore di
+espressioni di `laboratorio.js`, e aggiunto ai test della barra in `verifica.js`.
+
 ## Correttore delle risposte aperte
 
 Normalizza prima del confronto: maiuscole/minuscole, spazi, segno di moltiplicazione
-omesso, `x^2` ≡ `x2` ≡ `x²`, virgola decimale ≡ punto, unità di misura facoltativa.
+omesso, `x^2` ≡ `x2` ≡ `x²` ≡ `x^(2)`, `√(2)` ≡ `√2` ≡ `sqrt(2)`, `∛8` ≡ `³√8` ≡ `cbrt(8)`,
+`≥` ≡ `>=`, `≤` ≡ `<=`, `(1)/(2)` ≡ `1/2`, virgola decimale ≡ punto, unità di misura facoltativa.
 Per i risultati numerici il confronto è sul valore, con tolleranza dichiarata esercizio
 per esercizio.
 
@@ -170,12 +202,16 @@ per esercizio.
    lezioni e a volte rifiuta le connessioni automatiche: in quel caso confermare la pagina
    almeno tramite l'indice di un motore di ricerca.
 
-Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide e di grafici e scene del
-laboratorio) sono automatizzate in `verifica.js`: `node verifica.js .` dalla cartella del progetto.
+Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide, di grafici e scene del
+laboratorio e delle equivalenze della barra dei simboli) sono automatizzate in `verifica.js`:
+`node verifica.js .` dalla cartella del progetto.
 
 Dopo modifiche a `laboratorio.js` o all'impaginazione conviene provare la pagina in un browser
 vero, anche a 390 px di larghezza e in tema scuro: le figure si adattano alla larghezza del
-contenitore e non devono mai causare scorrimento orizzontale.
+contenitore e non devono mai causare scorrimento orizzontale. Su desktop provare anche una
+finestra bassa (1366×768): l'indice laterale è più alto della finestra e deve scorrere con la
+pagina finché se ne vede il fondo (funzione `sistemaRail` in `index.html`), senza voci
+irraggiungibili.
 
 Nelle sessioni in cloud di Claude Code il proxy di rete blocca YouMath, Edutecnica, Wikipedia e
 cdnjs: i link si confermano con la ricerca web e, per provare la pagina, MathJax si scarica dal

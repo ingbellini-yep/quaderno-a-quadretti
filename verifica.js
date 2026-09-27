@@ -42,6 +42,16 @@ for (const [m, a] of tutti) {
   (a.laboratorio || []).forEach((sc, i) => figura(sc, "laboratorio " + (i + 1)));
   a.esempi.forEach((e, i) => { if (e.grafico) figura(e.grafico, "esempio " + (i + 1)); });
   a.livelli.forEach((l, li) => l.items.forEach((it, ii) => { if (it.grafico) figura(it.grafico, `L${li + 1}.${ii + 1} grafico`); }));
+  // un «<» seguito da una lettera viene letto dal browser come inizio di un tag HTML e il
+  // resto del testo sparisce (es. $1<x<4$): va scritto con uno spazio, $1 < x < 4$
+  const tagNoti = /^\/?(strong|em|b|i|u|br|sup|sub|span|code|small|p|div|ul|ol|li|a|table|tr|td|th)\b/i;
+  const tagFinti = new Set();
+  const cerca = (o, dove) => {
+    if (typeof o === "string") { let m, re = /<(?=[A-Za-z\/])/g; while ((m = re.exec(o))) if (!tagNoti.test(o.slice(m.index + 1))) tagFinti.add(dove + " «" + o.slice(Math.max(0, m.index - 6), m.index + 6) + "»"); }
+    else if (o && typeof o === "object") for (const k in o) if (k !== "sol" && k !== "k") cerca(o[k], dove + "." + k);
+  };
+  cerca(a, a.id);
+  if (tagFinti.size) problemi.push("«<» seguito da una lettera (metti uno spazio dopo <): " + [...tagFinti].slice(0, 4).join("; "));
   // comandi LaTeX rimasti senza backslash dopo la valutazione JavaScript
   const rotti = JSON.stringify(a).match(/[^\\a-z&](cdot|dfrac|frac|mathrm|qquad|sqrt|times|text|leq|geq|neq)\b/g);
   if (rotti) problemi.push("LaTeX senza backslash: " + [...new Set(rotti.map(s => s.slice(1)))].join(","));
@@ -93,6 +103,24 @@ for (const [m, a] of tutti) {
   if (problemi.length) console.log("     " + problemi.join("; "));
   if (fallimenti.length) console.log("     " + fallimenti.slice(0, 10).join("; "));
   errori += problemi.length + fallimenti.length;
+}
+// barra dei simboli (simboli.js): quello che scrivono i tasti deve valere quanto la forma
+// scritta a mano, per il correttore e per il lettore di espressioni del laboratorio
+{
+  const uguali = [["x²", "x^2", "x2", "x^(2)"], ["x³", "x^3", "x^(3)"], ["x⁴", "x^4"], ["aⁿ", "a^n", "a^(n)"],
+    ["√(2)", "√2", "sqrt(2)", "radq(2)"], ["∛(8)", "³√8", "cbrt(8)", "³√(8)"], ["⁴√(x)", "⁴√x"],
+    ["(1)/(2)", "1/2"], ["(x+1)/(2)", "(x+1)/2"], ["x≥-4", "x>=-4", "x ≥ −4"], ["x≤2", "x<=2"], ["2√(3)", "2√3", "2·√3"]];
+  const diversi = [["x²", "x³"], ["√2", "∛2"], ["1/2", "2/1"], ["x>4", "x≥4"], ["(x+1)/2", "x+1/2"]];
+  const errS = [];
+  uguali.forEach(g => g.forEach(f => { if (normalizza(f) !== normalizza(g[0])) errS.push(`«${f}» ≠ «${g[0]}»`); }));
+  diversi.forEach(([p, q]) => { if (normalizza(p) === normalizza(q)) errS.push(`«${p}» = «${q}»`); });
+  const calcoli = [["√(16)", 4], ["√16", 4], ["∛(-8)", -2], ["⁴√(16)", 2], ["x²+x³", 12], ["x⁴", 16], ["(1)/(2)", 0.5], ["2⁻¹", 0.5]];
+  calcoli.forEach(([e, atteso]) => { try { const y = Lab.compila(e, ["x"]).f({ x: 2 }); if (Math.abs(y - atteso) > 1e-9) errS.push(`«${e}» vale ${y}, non ${atteso}`); } catch (x) { errS.push(`«${e}»: ${x.message}`); } });
+  eval(fs.readFileSync(path.join(dir, "simboli.js"), "utf8"));
+  const Sb = window.Simboli;
+  if (!Sb || !Sb.gruppi().some(g => g.id === "potenze") || Sb.apice("4") !== "⁴") errS.push("simboli.js non caricato o incompleto");
+  console.log((errS.length ? "ERR " : "OK  ") + `barra dei simboli: ${uguali.flat().length} forme equivalenti, ${diversi.length} coppie distinte, ${calcoli.length} calcoli`);
+  if (errS.length) { console.log("     " + errS.join("; ")); errori += errS.length; }
 }
 // stabilità degli id: i progressi in localStorage sono indicizzati per id di argomento,
 // quindi un id presente nell'ultimo commit non deve sparire né cambiare
