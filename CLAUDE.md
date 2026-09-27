@@ -16,7 +16,7 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | File | Ruolo | Nel repo |
 |---|---|---|
 | `index.html` | motore del sito (stili, indice, quiz, correttore, revisione, svolgimento guidato, importazione di esercizi, scheda e trasferimento dei progressi). Formato claude.ai: **senza** i tag `<!doctype>`, `<html>`, `<head>`, `<body>` | sì |
-| `contenuti-matematica.js` | contenuti di matematica | sì |
+| `contenuti-matematica.js` | contenuti di matematica: 1º anno in `CONTENUTI_MATEMATICA`, 2º anno in `CONTENUTI_MATEMATICA_2` | sì |
 | `contenuti-fisica.js` | contenuti di fisica | sì |
 | `laboratorio.js` | motori grafici condivisi: grafici delle equazioni (`Laboratorio.grafico`), animazione del moto su rotaia (`Laboratorio.moto`), tracciatore di equazioni scritte dallo studente, lettore di espressioni senza `eval`, controlli usati da `verifica.js`. Schema delle scene in testa al file | sì |
 | `simboli.js` | barra dei simboli cliccabili (potenze, radici con indice, frazione, confronti) che compare sotto ogni campo con l'attributo `data-simboli`: risposte del quiz, svolgimento guidato, importazione di esercizi, espressioni del laboratorio. Registro di gruppi espandibile: istruzioni in testa al file | sì |
@@ -50,12 +50,22 @@ va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il co
 
 ## Stato dei contenuti
 
-**Matematica — 7 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
+**Matematica — 8 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
+divisione tra polinomi, teorema del resto e regola di Ruffini (`mat1-ruffini`, inserito subito
+dopo la scomposizione: divisione in colonna, schema di Ruffini, teorema del resto e di Ruffini,
+zeri razionali ±p/q, scomposizione, con lo schema di Ruffini interattivo);
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
 concetto di funzione e piano cartesiano; proporzionalità diretta e inversa; disequazioni di
 primo grado (`mat1-disequazioni`: intervalli, principi di equivalenza, sistemi, studio del
-segno, fratte, con lo schema dei segni interattivo). Le disequazioni di secondo grado, che
-richiedono la parabola, andranno nel 2º anno.
+segno, fratte, con lo schema dei segni interattivo).
+
+**Matematica — 2º anno, 1 argomento**: disequazioni di secondo grado
+(`mat2-disequazioni-secondo-grado`: discriminante, parabola, valori interni ed esterni, casi
+Δ = 0 e Δ < 0, pure e spurie, grado superiore per scomposizione, fratte, sistemi, parametri e
+problemi; laboratorio con la scena `parabola` a cursori, tre schemi dei segni e il tracciatore
+parabola-retta). Gli argomenti del 2º anno vivono nell'array `CONTENUTI_MATEMATICA_2`, in coda
+a `contenuti-matematica.js`, e sono montati da `MATERIE` con `anni:{1:…, 2:…}`: niente file in
+più da pubblicare.
 
 **Fisica — 7 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
@@ -64,7 +74,8 @@ uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed es
 moto rettilineo uniformemente accelerato (`fis1-mrua`: accelerazione, frenate, inseguimenti,
 caduta libera con g = 9,8 m/s², quattro scene di laboratorio con grafico accelerazione-tempo).
 
-Gli anni dal 2º al 5º compaiono nell'indice come «da aggiungere su richiesta».
+Gli anni ancora vuoti (fisica dal 2º, matematica dal 3º) compaiono nell'indice come «da
+aggiungere su richiesta».
 
 ## Struttura di un argomento
 
@@ -87,8 +98,18 @@ Campi facoltativi per le figure (schema completo in testa a `laboratorio.js`):
   stroboscopia, fotocellule, cursori dei parametri, frecce di velocità e accelerazione, grafici
   s-t e v-t sincronizzati e, con `grafici:["st","vt","at"]`, anche a-t), `grafico`,
   `tracciatore` (lo studente scrive le equazioni), `segni` (schema dei segni di un prodotto o
-  di un quoziente di fattori, oppure di un sistema di disequazioni, con la soluzione scritta
-  come disuguaglianze e come intervalli; `editabile`, `soluzione:false`, `soloFattori:true`);
+  di un quoziente di fattori, anche di secondo grado, oppure di un sistema di disequazioni, con
+  la soluzione scritta come disuguaglianze e come intervalli; `editabile`, `soluzione:false`,
+  `soloFattori:true`), `parabola` (segno del trinomio `ax²+bx+c` con cursori per a, b, c e
+  scelta del verso: parabola con le soluzioni evidenziate sull'asse, Δ, concavità, zeri,
+  vertice e soluzione), `ruffini` (schema di Ruffini per la divisione per x − a: coefficienti con
+  gli zeri dei termini mancanti, riempimento un passo alla volta con `mostra:"passo"`, figura
+  completa con `"tutto"`, solo i dati con `"dati"` negli esercizi; `candidati:true` elenca gli
+  zeri razionali ±p/q con il valore di P, cliccabili se `editabile`; quoziente, resto e
+  scomposizione, anche nella forma intera `(2x − 1)(…)` per gli zeri frazionari). Gli zeri di
+  primo e secondo grado sono calcolati con la formula, anche
+  quelli doppi; gli irrazionali si scrivono con i radicali (`1 + √2`, `(1 − √5)/2`) e la retta
+  privata di punti come `x ≠ 3`, `S = ℝ ∖ {3}`;
 - `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati,
   anche schemi dei segni) mostrato sotto il testo, nel quiz, nella revisione e nello
   svolgimento guidato. Nei grafici `evidenzia:{serie, verso}` segna sull'asse x dove la
@@ -112,10 +133,11 @@ il browser lo prenderebbe per l'inizio di un tag HTML e il resto del testo spari
 
 Per estendere:
 
-- **nuovo argomento** → si accoda un oggetto all'array della materia. Gli **id degli
-  argomenti esistenti non vanno mai cambiati** e gli argomenti non vanno rimossi: i progressi
-  in `localStorage` sono indicizzati per id e per indice di livello, quindi un modulo
-  aggiunto in coda non li tocca, un id rinominato li rende irraggiungibili. `verifica.js`
+- **nuovo argomento** → si aggiunge un oggetto all'array della materia e dell'anno, in coda
+  oppure nella posizione didattica giusta (l'ordine dell'array è quello dell'indice). Gli **id
+  degli argomenti esistenti non vanno mai cambiati** e gli argomenti non vanno rimossi: i
+  progressi in `localStorage` sono indicizzati per id e per indice di livello, quindi un
+  modulo aggiunto, ovunque sia, non li tocca, un id rinominato li rende irraggiungibili. `verifica.js`
   confronta gli id con quelli dell'ultimo commit e segnala quelli spariti;
 - **nuovo anno** → si aggiunge una chiave dentro `anni`, nell'array `MATERIE` in `index.html`;
 - **nuova materia** → un nuovo file di contenuti più una voce in `MATERIE`.
@@ -172,20 +194,24 @@ Per estendere:
 
 Sotto ogni campo in cui si scrive un'espressione compare una barra di tasti (`simboli.js`):
 x², x³, xⁿ (esponente numerico o letterale, chiesto al momento), √, ∛, ⁿ√ (indice chiesto al
-momento), frazione (la selezione diventa il numeratore), =, >, <, ≥, ≤. Con del testo
+momento), frazione (la selezione diventa il numeratore), =, >, <, ≥, ≤, ≠ e, per scrivere le
+soluzioni delle disequazioni, il gruppo «Intervalli e insiemi»: ∨, ∪, ∞, ℝ, ∅. Con del testo
 selezionato potenze e radici lo racchiudono. I gruppi sono registrati con
 `Simboli.registra({...})` e possono dipendere da anno e materia: esponenziali e logaritmi e
 goniometria sono già predisposti per il 3º-5º anno e, negli altri anni, restano raggiungibili
 con «Altri simboli». Per un nuovo campo basta l'attributo `data-simboli` (con `dopo:selettore`
 o `dentro:selettore` per scegliere dove mettere la barra). Ogni nuovo simbolo va reso
 equivalente alle forme scritte a mano sia in `normalizza` (index.html) sia nel lettore di
-espressioni di `laboratorio.js`, e aggiunto ai test della barra in `verifica.js`.
+espressioni di `laboratorio.js` (se è un simbolo di calcolo; ∨, ∪, ∞, ℝ, ∅ e ≠ riguardano solo
+il correttore), e aggiunto ai test della barra in `verifica.js`.
 
 ## Correttore delle risposte aperte
 
 Normalizza prima del confronto: maiuscole/minuscole, spazi, segno di moltiplicazione
 omesso, `x^2` ≡ `x2` ≡ `x²` ≡ `x^(2)`, `√(2)` ≡ `√2` ≡ `sqrt(2)`, `∛8` ≡ `³√8` ≡ `cbrt(8)`,
-`≥` ≡ `>=`, `≤` ≡ `<=`, `(1)/(2)` ≡ `1/2`, virgola decimale ≡ punto, unità di misura facoltativa.
+`≥` ≡ `>=`, `≤` ≡ `<=`, `≠` ≡ `!=`, `∨` ≡ «o» ≡ «oppure», `∪` ≡ `U` fra due intervalli,
+`∞` ≡ `inf` (e `+∞` ≡ `∞`), `(1)/(2)` ≡ `1/2`, virgola decimale ≡ punto, unità di misura
+facoltativa. Nelle unioni l'ordine dei pezzi non conta (`x>3 ∨ x<1` ≡ `x<1 ∨ x>3`).
 Per i risultati numerici il confronto è sul valore, con tolleranza dichiarata esercizio
 per esercizio.
 

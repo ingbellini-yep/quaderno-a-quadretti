@@ -15,7 +15,7 @@ const ini = html.indexOf("function normalizza"), fin = html.indexOf("function ri
 (0, eval)(html.slice(ini, fin));
 console.log("correttore estratto:", typeof corretta);
 
-const tutti = [...window.CONTENUTI_MATEMATICA.map(a => ["mat", a]), ...window.CONTENUTI_FISICA.map(a => ["fis", a])];
+const tutti = [...window.CONTENUTI_MATEMATICA.map(a => ["mat", a]), ...(window.CONTENUTI_MATEMATICA_2 || []).map(a => ["mat2", a]), ...window.CONTENUTI_FISICA.map(a => ["fis", a])];
 let errori = 0;
 for (const [m, a] of tutti) {
   const problemi = [];
@@ -109,17 +109,27 @@ for (const [m, a] of tutti) {
 {
   const uguali = [["x²", "x^2", "x2", "x^(2)"], ["x³", "x^3", "x^(3)"], ["x⁴", "x^4"], ["aⁿ", "a^n", "a^(n)"],
     ["√(2)", "√2", "sqrt(2)", "radq(2)"], ["∛(8)", "³√8", "cbrt(8)", "³√(8)"], ["⁴√(x)", "⁴√x"],
-    ["(1)/(2)", "1/2"], ["(x+1)/(2)", "(x+1)/2"], ["x≥-4", "x>=-4", "x ≥ −4"], ["x≤2", "x<=2"], ["2√(3)", "2√3", "2·√3"]];
-  const diversi = [["x²", "x³"], ["√2", "∛2"], ["1/2", "2/1"], ["x>4", "x≥4"], ["(x+1)/2", "x+1/2"]];
+    ["(1)/(2)", "1/2"], ["(x+1)/(2)", "(x+1)/2"], ["x≥-4", "x>=-4", "x ≥ −4"], ["x≤2", "x<=2"], ["2√(3)", "2√3", "2·√3"],
+    ["x≠3", "x!=3", "x<>3"], ["x<1 ∨ x>3", "x<1 o x>3", "x>3 oppure x<1", "x<1 or x>3"],
+    ["(-∞;1) ∪ (3;+∞)", "(-inf;1) U (3;+inf)", "(3;∞)∪(-∞;1)"], ["(4;+∞)", "(4;+inf)", "(4;∞)"]];
+  const diversi = [["x²", "x³"], ["√2", "∛2"], ["1/2", "2/1"], ["x>4", "x≥4"], ["(x+1)/2", "x+1/2"],
+    ["x<1 ∨ x>3", "x<1 ∨ x≥3"], ["x≠3", "x=3"], ["(-∞;1) ∪ (3;+∞)", "(-∞;1] ∪ (3;+∞)"]];
   const errS = [];
   uguali.forEach(g => g.forEach(f => { if (normalizza(f) !== normalizza(g[0])) errS.push(`«${f}» ≠ «${g[0]}»`); }));
   diversi.forEach(([p, q]) => { if (normalizza(p) === normalizza(q)) errS.push(`«${p}» = «${q}»`); });
   const calcoli = [["√(16)", 4], ["√16", 4], ["∛(-8)", -2], ["⁴√(16)", 2], ["x²+x³", 12], ["x⁴", 16], ["(1)/(2)", 0.5], ["2⁻¹", 0.5]];
   calcoli.forEach(([e, atteso]) => { try { const y = Lab.compila(e, ["x"]).f({ x: 2 }); if (Math.abs(y - atteso) > 1e-9) errS.push(`«${e}» vale ${y}, non ${atteso}`); } catch (x) { errS.push(`«${e}»: ${x.message}`); } });
+  // zeri dei trinomi nello schema dei segni: razionali come frazioni, irrazionali come radicali
+  [[0.5, "1/2"], [1 + Math.SQRT2, "1 + √2"], [(1 - Math.sqrt(5)) / 2, "(1 − √5)/2"], [-Math.sqrt(6) / 2, "−√6/2"]]
+    .forEach(([n, atteso]) => { if (Lab.frazione(n) !== atteso) errS.push(`frazione(${n}) = «${Lab.frazione(n)}», non «${atteso}»`); });
+  // schema di Ruffini: coefficienti con gli zeri dei termini mancanti, quoziente e resto
+  const rf = (pol, a) => { const r = Lab.schemaRuffini(Lab.coefficientiDi(pol, "x"), a); return r.quoziente.join(",") + "|" + r.resto; };
+  [["x^3 - 7x + 6", 1, "1,1,-6|0"], ["2x^3 - 5x^2 + 3", 2, "2,-1,-2|-1"], ["x^4 - 16", 2, "1,2,4,8|0"], ["2x^3 - 3x^2 - 11x + 6", 0.5, "2,-2,-12|0"], ["1; 0; -2; 1", 1, "1,1,-1|0"]]
+    .forEach(([pol, a, atteso]) => { const g = rf(pol, a); if (g !== atteso) errS.push(`Ruffini ${pol} : (x − ${a}) = ${g}, non ${atteso}`); });
   eval(fs.readFileSync(path.join(dir, "simboli.js"), "utf8"));
   const Sb = window.Simboli;
-  if (!Sb || !Sb.gruppi().some(g => g.id === "potenze") || Sb.apice("4") !== "⁴") errS.push("simboli.js non caricato o incompleto");
-  console.log((errS.length ? "ERR " : "OK  ") + `barra dei simboli: ${uguali.flat().length} forme equivalenti, ${diversi.length} coppie distinte, ${calcoli.length} calcoli`);
+  if (!Sb || !["potenze", "confronti", "intervalli"].every(id => Sb.gruppi().some(g => g.id === id)) || Sb.apice("4") !== "⁴") errS.push("simboli.js non caricato o incompleto");
+  console.log((errS.length ? "ERR " : "OK  ") + `barra dei simboli e motori: ${uguali.flat().length} forme equivalenti, ${diversi.length} coppie distinte, ${calcoli.length} calcoli, radicali, 5 schemi di Ruffini`);
   if (errS.length) { console.log("     " + errS.join("; ")); errori += errS.length; }
 }
 // stabilità degli id: i progressi in localStorage sono indicizzati per id di argomento,
