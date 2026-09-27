@@ -1,5 +1,6 @@
 // Verifiche automatiche sui contenuti: struttura degli argomenti e degli esercizi,
-// correttore reale estratto da index.html, comandi LaTeX con backslash, guide allo svolgimento.
+// correttore reale estratto da index.html, comandi LaTeX con backslash, guide allo svolgimento,
+// grafici e scene del laboratorio (validati con Laboratorio.controlla di laboratorio.js).
 // Uso, dalla cartella del progetto:  node verifica.js .
 
 const fs = require("fs"), path = require("path");
@@ -7,6 +8,8 @@ const dir = process.argv[2];
 global.window = {};
 eval(fs.readFileSync(path.join(dir, "contenuti-matematica.js"), "utf8"));
 eval(fs.readFileSync(path.join(dir, "contenuti-fisica.js"), "utf8"));
+eval(fs.readFileSync(path.join(dir, "laboratorio.js"), "utf8"));
+const Lab = window.Laboratorio;
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const ini = html.indexOf("function normalizza"), fin = html.indexOf("function rispostaGiusta");
 (0, eval)(html.slice(ini, fin));
@@ -33,6 +36,12 @@ for (const [m, a] of tutti) {
       if (it.num && (typeof it.num.v !== "number" || typeof it.num.tol !== "number")) problemi.push(tag + ": num incompleto");
     } else problemi.push(tag + ": tipo sconosciuto " + it.tipo);
   }));
+  // grafici e scene del laboratorio: tipi noti, intervalli validi, espressioni leggibili e definite
+  let nFigure = 0;
+  const figura = (spec, dove) => { nFigure++; Lab.controlla(spec).forEach(x => problemi.push(dove + ": " + x)); };
+  (a.laboratorio || []).forEach((sc, i) => figura(sc, "laboratorio " + (i + 1)));
+  a.esempi.forEach((e, i) => { if (e.grafico) figura(e.grafico, "esempio " + (i + 1)); });
+  a.livelli.forEach((l, li) => l.items.forEach((it, ii) => { if (it.grafico) figura(it.grafico, `L${li + 1}.${ii + 1} grafico`); }));
   // comandi LaTeX rimasti senza backslash dopo la valutazione JavaScript
   const rotti = JSON.stringify(a).match(/[^\\a-z&](cdot|dfrac|frac|mathrm|qquad|sqrt|times|text|leq|geq|neq)\b/g);
   if (rotti) problemi.push("LaTeX senza backslash: " + [...new Set(rotti.map(s => s.slice(1)))].join(","));
@@ -79,7 +88,7 @@ for (const [m, a] of tutti) {
       } else t(it.sol[0] + "zz", false, "sporca accettata");
     }
   }));
-  const riga = `${m} ${a.id}: pillole ${a.pillole.length}, esempi ${a.esempi.length}, risorse ${a.risorse.length}, esercizi ${a.livelli.map(l => l.items.length).join("/")}, test correttore ${nTest} (falliti ${fallimenti.length})`;
+  const riga = `${m} ${a.id}: pillole ${a.pillole.length}, esempi ${a.esempi.length}, risorse ${a.risorse.length}, esercizi ${a.livelli.map(l => l.items.length).join("/")}, ${nFigure ? "figure " + nFigure + ", " : ""}test correttore ${nTest} (falliti ${fallimenti.length})`;
   console.log((problemi.length || fallimenti.length ? "ERR " : "OK  ") + riga);
   if (problemi.length) console.log("     " + problemi.join("; "));
   if (fallimenti.length) console.log("     " + fallimenti.slice(0, 10).join("; "));
