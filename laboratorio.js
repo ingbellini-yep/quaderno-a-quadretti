@@ -48,13 +48,18 @@
      durata:   secondi simulati
      pista:    [min, max] posizioni rappresentate sulla rotaia
      unita:    "m" (unità delle posizioni)
-     corpi:    [ {nome:"A", legge:"s0+v*t"}              legge oraria con parametri
-               | {nome:"B", s0:0, t0:0, tratti:[{dt:4, v:3}, {dt:3, v:0}]} ]  moto a tratti
+     corpi:    [ {nome:"A", legge:"s0+v0*t+0.5*a*t^2"}   legge oraria con parametri
+               | {nome:"B", s0:0, v0:0, t0:0, tratti:[{dt:5, a:3}, {dt:6}, {dt:5, a:-3}]}
+               | {nome:"C", s0:0, tratti:[{dt:4, v:3}, {dt:3, v:0}]} ]  moti a tratti:
+               ogni tratto ha durata dt, accelerazione a (0 se manca) e, se serve,
+               la velocità v all'inizio del tratto; dopo l'ultimo tratto il corpo è fermo
      parametri:[ {id:"v", nome:"velocità v", min:-10, max:10, passo:0.5, val:4, u:"m/s"} ]
      strobo:   intervallo della stroboscopia in secondi (0 = nessuna)
      traguardi:[ {s:100, nome:"F1"} ]  fotocellule
-     st, vt:   {y:[min,max]} intervalli fissi dei due grafici
-     vmax:     velocità che corrisponde alla freccia più lunga
+     grafici:  ["st","vt"] (predefiniti), con "at" anche il grafico accelerazione-tempo
+     st, vt, at: {y:[min,max]} intervalli fissi dei grafici
+     vmax, amax: velocità e accelerazione che corrispondono alle frecce più lunghe
+     Se un corpo accelera compaiono la lettura di a e la freccia dell'accelerazione.
 
    SCHEMA DEL TRACCIATORE  {tipo:"tracciatore", ...}
      titolo, testo, assi, unita, x, equazioni:["s = 20 + 10t", "s = 100 - 5t"]
@@ -243,19 +248,26 @@ function prova(src, variabili){
   try{ return {ok:true, f:compila(src, variabili).f}; }
   catch(e){ return {ok:false, errore:e.message}; }
 }
-/* se f è lineare restituisce "s = 20 + 5t", altrimenti null */
+/* se f è un polinomio di grado al massimo 2 restituisce il testo della legge,
+   per esempio "s = 20 + 5t" oppure "s = 3t + 1,5t²"; altrimenti null */
+function testoPolinomio(f, y, x, dec){
+  var c0 = f(0), c1 = (f(1)-f(-1))/2, c2 = (f(1)-2*f(0)+f(-1))/2;
+  if(!isFinite(c0) || !isFinite(c1) || !isFinite(c2)) return null;
+  var ok = [3.7, -11.3, 25.1].every(function(z){ var v = f(z), q = c0+c1*z+c2*z*z; return Math.abs(v-q) <= 1e-7*(1+Math.abs(v)); });
+  if(!ok) return null;
+  var d = dec==null ? 2 : dec, pezzi = [];
+  [[c0,""],[c1,x],[c2,x+"²"]].forEach(function(q){
+    if(Math.abs(q[0]) < 1e-9) return;
+    var n = formattaCorto(Math.abs(q[0]), d);
+    pezzi.push({neg:q[0]<0, t:(q[1] && n==="1" ? "" : n)+q[1]});
+  });
+  if(!pezzi.length) return y+" = 0";
+  return y + " = " + pezzi.map(function(q, i){ return (i ? (q.neg ? " − " : " + ") : (q.neg ? "−" : "")) + q.t; }).join("");
+}
+/* come testoPolinomio, ma solo per le leggi di primo grado */
 function testoLineare(f, y, x, dec){
-  var a = f(0), b = f(1)-f(0), prova1 = f(3.7), prova2 = f(-11.3);
-  if(!isFinite(a) || !isFinite(b)) return null;
-  if(Math.abs(prova1-(a+3.7*b)) > 1e-7*(1+Math.abs(prova1)) || Math.abs(prova2-(a-11.3*b)) > 1e-7*(1+Math.abs(prova2))) return null;
-  var A = formattaCorto(a, dec==null?2:dec), B = formattaCorto(Math.abs(b), dec==null?2:dec), t;
-  if(Math.abs(b) < 1e-12) t = A;
-  else {
-    var mono = (B==="1" ? "" : B) + x;
-    if(Math.abs(a) < 1e-12) t = (b<0?"−":"") + mono;
-    else t = A + (b<0 ? " − " : " + ") + mono;
-  }
-  return y + " = " + t;
+  var c2 = (f(1)-2*f(0)+f(-1))/2;
+  return Math.abs(c2) > 1e-9 ? null : testoPolinomio(f, y, x, dec);
 }
 
 /* ================= stile ================= */
@@ -273,6 +285,7 @@ var CSS = [
 ".lab-banco{position:relative;border:1px solid var(--line,#ddd);border-radius:14px;background:var(--surface-2,#f6f6f6);padding:8px 10px 4px;overflow:hidden}",
 ".lab-banco svg{display:block;width:100%;height:auto}",
 ".lab-letture{display:flex;flex-wrap:wrap;gap:8px}",
+".lab-nota-banco{margin:-6px 0 0;font-size:12.5px;color:var(--muted,#666)}",
 ".lab-lett{display:flex;flex-wrap:wrap;max-width:100%;align-items:baseline;gap:4px 10px;padding:8px 12px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--surface,#fff);min-width:0}",
 ".lab-lett .n{font-size:12.5px;color:var(--muted,#666);display:inline-flex;align-items:center;gap:6px}",
 ".lab-lett b{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-weight:500;font-size:14.5px;font-variant-numeric:tabular-nums;white-space:nowrap}",
@@ -707,37 +720,43 @@ function grafico(host, spec){
 function corpo(c, i, par, durata){
   var o = {nome: c.nome || NOMI[i], colore: c.colore!=null ? c.colore : i};
   if(c.tratti){
-    var t0 = c.t0||0, s = c.s0||0, t = t0, nodi = [[t0, s]], seg = [];
+    /* ogni tratto: durata dt, accelerazione a (0 se manca); v, se c'è, fissa la velocità
+       all'inizio del tratto (serve per i moti a tratti uniformi). Prima di t0 e dopo
+       l'ultimo tratto il corpo è fermo. */
+    var t0 = c.t0||0, s = c.s0||0, v = c.v0||0, t = t0, pezzi = [];
     c.tratti.forEach(function(tr){
-      var t2 = t+tr.dt, s2 = s+tr.v*tr.dt;
-      seg.push([t, tr.v, t2, tr.v]); nodi.push([t2, s2]); t = t2; s = s2;
+      if(tr.v!=null) v = tr.v;
+      var a = tr.a||0;
+      pezzi.push({t:t, s:s, v:v, a:a, t2:t+tr.dt});
+      s += v*tr.dt + a*tr.dt*tr.dt/2; v += a*tr.dt; t += tr.dt;
     });
-    var fine = t;
+    var fine = t, sFine = s, s0 = c.s0||0;
+    var pezzo = function(x){ for(var k=0; k<pezzi.length; k++){ if(x < pezzi[k].t2 || k===pezzi.length-1) return pezzi[k]; } };
     o.s = function(x){
-      if(x <= nodi[0][0]) return nodi[0][1];
-      for(var k=1; k<nodi.length; k++){
-        if(x <= nodi[k][0]){ var a = nodi[k-1], b = nodi[k]; return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]); }
-      }
-      return nodi[nodi.length-1][1];
+      if(x <= t0) return s0;
+      if(x >= fine) return sFine;
+      var q = pezzo(x), d = x-q.t; return q.s + q.v*d + q.a*d*d/2;
     };
-    o.v = function(x){
-      if(x < t0 || x > fine) return 0;
-      for(var k=0; k<seg.length; k++){ if(x < seg[k][2] || k===seg.length-1) return seg[k][1]; }
-      return 0;
-    };
-    var pS = nodi.slice(), sV = seg.slice();
-    if(t0 > 0){ pS.unshift([0, nodi[0][1]]); sV.unshift([0,0,t0,0]); }
-    if(fine < durata){ pS.push([durata, nodi[nodi.length-1][1]]); sV.push([fine,0,durata,0]); }
-    o.serieS = {punti:pS}; o.serieV = {segmenti:sV};
+    o.v = function(x){ if(x < t0 || x > fine) return 0; var q = pezzo(x); return q.v + q.a*(x-q.t); };
+    o.a = function(x){ if(x < t0 || x >= fine) return 0; return pezzo(x).a; };
+    var sV = pezzi.map(function(q){ return [q.t, q.v, q.t2, q.v+q.a*(q.t2-q.t)]; });
+    var sA = pezzi.map(function(q){ return [q.t, q.a, q.t2, q.a]; });
+    if(t0 > 0){ sV.unshift([0,0,t0,0]); sA.unshift([0,0,t0,0]); }
+    if(fine < durata){ sV.push([fine,0,durata,0]); sA.push([fine,0,durata,0]); }
+    var nodi = [[0, s0]].concat(pezzi.map(function(q){ return [q.t, q.s]; }), [[fine, sFine], [Math.max(durata, fine), sFine]]);
+    var lineare = pezzi.every(function(q){ return q.a===0; });
+    o.serieS = lineare ? {punti:nodi} : {valore:o.s};
+    o.serieV = {segmenti:sV}; o.serieA = {segmenti:sA};
   } else {
-    var f = funzione(c.legge, "t", par), h = Math.max(1e-5, durata*1e-6);
+    var f = funzione(c.legge, "t", par), h = Math.max(1e-5, durata*1e-6), h2 = Math.max(1e-3, durata*1e-3);
     o.s = f;
     o.v = function(x){ return (f(x+h)-f(x-h))/(2*h); };
-    o.serieS = {valore:f}; o.serieV = {valore:o.v};
-    o.legge = testoLineare(f, "s", "t");
+    o.a = function(x){ var a = (f(x+h2)-2*f(x)+f(x-h2))/(h2*h2); return Math.abs(a) < 1e-6 ? 0 : a; };
+    o.serieS = {valore:f}; o.serieV = {valore:o.v}; o.serieA = {valore:o.a};
+    o.legge = testoPolinomio(f, "s", "t");
   }
-  o.serieS.nome = o.serieV.nome = o.nome;
-  o.serieS.colore = o.serieV.colore = o.colore;
+  o.serieS.nome = o.serieV.nome = o.serieA.nome = o.nome;
+  o.serieS.colore = o.serieV.colore = o.serieA.colore = o.colore;
   if(o.legge){ o.serieS.legenda = o.legge.replace(/^s = /,""); }
   return o;
 }
@@ -747,7 +766,8 @@ function moto(host, spec){
   var root = mk("div","lab-scena lab-moto");
   host.appendChild(root);
   testata(root, spec);
-  var durata = spec.durata || 10, U = spec.unita || "m", UT = "s", UV = U+"/"+UT;
+  var durata = spec.durata || 10, U = spec.unita || "m", UT = "s", UV = U+"/"+UT, UA = U+"/s\u00b2";
+  var mostraA = false;   // lettura e freccia dell'accelerazione, solo se qualche corpo accelera
   var par = {};
   (spec.parametri||[]).forEach(function(p){ par[p.id] = p.val; });
   var corpi = [], incontri = [], passaggi = [];
@@ -761,6 +781,9 @@ function moto(host, spec){
   svg.setAttribute("class","lab-svg lab-rotaia"); svg.setAttribute("role","img");
   banco.appendChild(svg);
   var gMobile;
+  var notaBanco = mk("p","lab-nota-banco","Sopra la rotaia la freccia della velocità, sotto la rotaia quella dell'accelerazione: la lunghezza è proporzionale al modulo.");
+  notaBanco.hidden = true;
+  root.appendChild(notaBanco);
 
   /* letture */
   var letture = mk("div","lab-letture"); root.appendChild(letture);
@@ -808,7 +831,8 @@ function moto(host, spec){
   /* grafici */
   var zonaG = mk("div","lab-grafici"); root.appendChild(zonaG);
   var vuoleST = !spec.grafici || spec.grafici.indexOf("st")>=0, vuoleVT = !spec.grafici || spec.grafici.indexOf("vt")>=0;
-  var gS = null, gV = null;
+  var vuoleAT = !!(spec.grafici && spec.grafici.indexOf("at")>=0);
+  var gS = null, gV = null, gA = null;
 
   function specST(){
     return {titolo:"Spazio-tempo", assi:{x:"t", y:"s"}, unita:{x:UT, y:U}, x:[0,durata], y:spec.st && spec.st.y,
@@ -821,8 +845,15 @@ function moto(host, spec){
             descrizione:"Grafico velocità-tempo: velocità v dei corpi in funzione del tempo t, da 0 a "+formattaCorto(durata)+" s. L'area fra la linea e l'asse dei tempi è lo spostamento."};
   }
 
+  function specAT(){
+    return {titolo:"Accelerazione-tempo", assi:{x:"t", y:"a"}, unita:{x:UT, y:UA}, x:[0,durata], y:spec.at && spec.at.y,
+            serie:corpi.map(function(c){ return c.serieA; }),
+            descrizione:"Grafico accelerazione-tempo: accelerazione a dei corpi in funzione del tempo t, da 0 a "+formattaCorto(durata)+" s. L'area fra la linea e l'asse dei tempi è la variazione di velocità."};
+  }
   function ricostruisci(){
     corpi = spec.corpi.slice(0, MAX_SERIE).map(function(c, i){ return corpo(c, i, par, durata); });
+    mostraA = vuoleAT || corpi.some(function(c){ for(var k=0; k<=60; k++){ if(Math.abs(c.a(durata*k/60)) > 1e-6) return true; } return false; });
+    notaBanco.hidden = !mostraA;
     incontri = [];
     for(var i=0; i<corpi.length; i++) for(var j=i+1; j<corpi.length; j++){
       incroci(corpi[i].s, corpi[j].s, 0, durata, 800).forEach(function(tc){
@@ -836,6 +867,7 @@ function moto(host, spec){
     });
     if(gS) gS.ridisegna(specST()); else if(vuoleST) gS = grafico(zonaG, specST());
     if(gV) gV.ridisegna(specVT()); else if(vuoleVT) gV = grafico(zonaG, specVT());
+    if(gA) gA.ridisegna(specAT()); else if(vuoleAT) gA = grafico(zonaG, specAT());
     costruisciLetture();
     disegnaPista();
     aggiorna();
@@ -846,18 +878,19 @@ function moto(host, spec){
       var el = mk("div","lab-lett"), n = mk("span","n"), k = mk("i","lab-tondo");
       k.style.background = colore(c.colore);
       n.appendChild(k); n.appendChild(document.createTextNode(c.nome));
-      var bs = mk("b"), bv = mk("b");
+      var bs = mk("b"), bv = mk("b"), ba = mostraA ? mk("b") : null;
       el.appendChild(n); el.appendChild(bs); el.appendChild(bv);
+      if(ba) el.appendChild(ba);
       if(c.legge) el.appendChild(mk("span","legge", c.legge));
       letture.appendChild(el);
-      return {el:el, s:bs, v:bv};
+      return {el:el, s:bs, v:bv, a:ba};
     });
   }
 
   var P = {};   // geometria della pista
   function disegnaPista(){
     var W = Math.max(300, Math.round(banco.clientWidth - 20 || 640));
-    var n = corpi.length, corsia = 50, alto = spec.traguardi && spec.traguardi.length ? 26 : 10, righello = 34;
+    var n = corpi.length, corsia = mostraA ? 58 : 50, alto = spec.traguardi && spec.traguardi.length ? 26 : 10, righello = 34;
     var H = alto + n*corsia + righello;
     var pista = spec.pista || (function(){
       var lo = Infinity, hi = -Infinity;
@@ -904,6 +937,12 @@ function moto(host, spec){
     corpi.forEach(function(c){ for(var k=0; k<=60; k++){ m = Math.max(m, Math.abs(c.v(durata*k/60))); } });
     return m || 1;
   }
+  function amax(){
+    if(spec.amax) return spec.amax;
+    var m = 0;
+    corpi.forEach(function(c){ for(var k=0; k<=60; k++){ m = Math.max(m, Math.abs(c.a(durata*k/60))); } });
+    return m || 1;
+  }
   function carrello(x, y, c, opaco, pieno){
     var w = 30, h = 14, s = '';
     if(pieno){
@@ -917,7 +956,7 @@ function moto(host, spec){
   }
   function aggiornaPista(){
     if(!gMobile) return;
-    var h = [], vm = vmax();
+    var h = [], vm = vmax(), am = mostraA ? amax() : 1;
     corpi.forEach(function(c, i){
       var y = P.alto + i*P.corsia + 30, s = c.s(t), fuori = s < P.pista[0] || s > P.pista[1];
       if(cS.checked && dt0 > 0){
@@ -938,6 +977,12 @@ function moto(host, spec){
         h.push('<path d="M'+xa+','+ya+'h'+(d*L)+'" stroke-width="2" stroke-linecap="round" style="stroke:'+colore(c.colore)+'"/>'+
                '<path d="M'+(xa+d*L)+','+ya+'l'+(-d*7)+',-4.5v9z" style="fill:'+colore(c.colore)+'"/>');
       }
+      var acc = mostraA ? c.a(t) : 0;
+      if(Math.abs(acc) > am*1e-3){
+        /* accelerazione: freccia sottile a punta aperta, sotto la rotaia */
+        var La = Math.max(8, Math.min(1, Math.abs(acc)/am)*48), da = acc > 0 ? 1 : -1, yb = y+19;
+        h.push('<path d="M'+X+','+yb+'h'+(da*La)+'m'+(-da*6)+',-4l'+(da*6)+',4l'+(-da*6)+',4" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="stroke:'+colore(c.colore)+'"/>');
+      }
     });
     gMobile.innerHTML = h.join("");
   }
@@ -948,11 +993,13 @@ function moto(host, spec){
       if(!lettC[i]) return;
       lettC[i].s.textContent = "s = "+formatta(c.s(t), 1)+" "+U;
       lettC[i].v.textContent = "v = "+formatta(c.v(t), 1)+" "+UV;
+      if(lettC[i].a) lettC[i].a.textContent = "a = "+formatta(c.a(t), 1)+" "+UA;
     });
     aggiornaPista();
     var raggiunti = incontri.filter(function(x){ return x.t <= t+1e-9; });
     if(gS) gS.imposta({fino:t, cursore:t, punti:raggiunti.map(function(x){ return {x:x.t, y:x.s, testo:"incontro"}; })});
     if(gV) gV.imposta({fino:t, cursore:t, area: corpi.length===1 && t > 0 ? {serie:0, da:0, a:t} : null});
+    if(gA) gA.imposta({fino:t, cursore:t});
     rT.value = t;
     var r = [];
     raggiunti.forEach(function(x){ r.push({pre:x.a+" e "+x.b+" nella stessa posizione: ", val:"t = "+formatta(x.t, 2)+" s, s = "+formatta(x.s, 1)+" "+U}); });
@@ -1147,13 +1194,18 @@ function controlla(spec){
     });
     if(!Array.isArray(spec.corpi) || !spec.corpi.length || spec.corpi.length > MAX_SERIE) p.push("da 1 a "+MAX_SERIE+" corpi");
     (spec.corpi||[]).forEach(function(c, i){
-      if(c.tratti){ if(!c.tratti.length || !c.tratti.every(function(tr){ return tr.dt > 0 && isFinite(tr.v); })) p.push("corpo "+i+": tratti non validi"); }
+      if(c.tratti){
+        var buoni = c.tratti.length && c.tratti.every(function(tr){ return tr.dt > 0 && (tr.v==null || isFinite(tr.v)) && (tr.a==null || isFinite(tr.a)); });
+        if(!buoni || (c.v0!=null && !isFinite(c.v0))) p.push("corpo "+i+": tratti non validi");
+      }
       else if(c.legge!=null) espr(c.legge, nomi, 0, spec.durata||10, "corpo "+i);
       else p.push("corpo "+i+": manca legge o tratti");
     });
     (spec.traguardi||[]).forEach(function(g, i){ if(!isFinite(g.s)) p.push("traguardo "+i+" non valido"); });
     if(spec.st) intervallo(spec.st.y, "st.y");
     if(spec.vt) intervallo(spec.vt.y, "vt.y");
+    if(spec.at) intervallo(spec.at.y, "at.y");
+    (spec.grafici||[]).forEach(function(g){ if(["st","vt","at"].indexOf(g) < 0) p.push("grafico sconosciuto «"+g+"»"); });
   } else if(tipo==="tracciatore"){
     intervallo(spec.x, "x");
     var X2 = spec.x || [0,10];
@@ -1166,7 +1218,7 @@ function controlla(spec){
 var API = {
   versione: 1,
   compila: compila, funzione: funzione, prova: prova, incroci: incroci,
-  formatta: formatta, formattaCorto: formattaCorto, testoLineare: testoLineare,
+  formatta: formatta, formattaCorto: formattaCorto, testoLineare: testoLineare, testoPolinomio: testoPolinomio,
   grafico: grafico, moto: moto, tracciatore: tracciatore,
   monta: monta, registra: registra, controlla: controlla,
   tipi: function(){ return Object.keys(TIPI); }

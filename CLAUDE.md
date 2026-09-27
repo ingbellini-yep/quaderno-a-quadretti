@@ -52,10 +52,12 @@ va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il co
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
 concetto di funzione e piano cartesiano; proporzionalità diretta e inversa.
 
-**Fisica — 6 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
+**Fisica — 7 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
 di grandezza (convenzione: mantissa < 5 → 10^n, altrimenti 10^(n+1)); moto rettilineo
-uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed esercizi).
+uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed esercizi);
+moto rettilineo uniformemente accelerato (`fis1-mrua`: accelerazione, frenate, inseguimenti,
+caduta libera con g = 9,8 m/s², quattro scene di laboratorio con grafico accelerazione-tempo).
 
 Gli anni dal 2º al 5º compaiono nell'indice come «da aggiungere su richiesta».
 
@@ -76,8 +78,10 @@ Campi facoltativi per le figure (schema completo in testa a `laboratorio.js`):
 
 - `laboratorio` nell'argomento: elenco di scene interattive, mostrate nella sezione
   «Laboratorio» fra formulario ed esempi. Tipi: `moto` (carrelli su rotaia con legge oraria
-  `s(t)` o moto a tratti, stroboscopia, fotocellule, cursori dei parametri, grafici s-t e v-t
-  sincronizzati), `grafico`, `tracciatore` (lo studente scrive le equazioni);
+  `s(t)` anche di secondo grado, oppure moto a tratti con velocità e accelerazione per tratto;
+  stroboscopia, fotocellule, cursori dei parametri, frecce di velocità e accelerazione, grafici
+  s-t e v-t sincronizzati e, con `grafici:["st","vt","at"]`, anche a-t), `grafico`,
+  `tracciatore` (lo studente scrive le equazioni);
 - `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati)
   mostrato sotto il testo, nel quiz, nella revisione e nello svolgimento guidato.
 
@@ -175,7 +179,10 @@ laboratorio) sono automatizzate in `verifica.js`: `node verifica.js .` dalla car
 
 Dopo modifiche a `laboratorio.js` o all'impaginazione conviene provare la pagina in un browser
 vero, anche a 390 px di larghezza e in tema scuro: le figure si adattano alla larghezza del
-contenitore e non devono mai causare scorrimento orizzontale.
+contenitore e non devono mai causare scorrimento orizzontale. Su desktop provare anche una
+finestra bassa (1366×768): l'indice laterale è più alto della finestra e deve scorrere con la
+pagina finché se ne vede il fondo (funzione `sistemaRail` in `index.html`), senza voci
+irraggiungibili.
 
 Nelle sessioni in cloud di Claude Code il proxy di rete blocca YouMath, Edutecnica, Wikipedia e
 cdnjs: i link si confermano con la ricerca web e, per provare la pagina, MathJax si scarica dal
