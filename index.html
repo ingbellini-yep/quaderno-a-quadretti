@@ -1700,6 +1700,28 @@ montaImportati();
 renderRail();
 renderHome();
 
+/* Indice laterale su schermi larghi: se entra nella finestra resta fermo sotto l'intestazione;
+   se è più alto della finestra scorre insieme alla pagina (verso il basso fino a mostrarne il
+   fondo, verso l'alto fino a mostrarne la cima) e poi si ferma. Così nessuna voce resta
+   irraggiungibile. Si lavora sul "top" dello sticky, spostandolo di quanto scorre la pagina. */
+var RAIL = {top:null, y:window.scrollY, base:null, attesa:false};
+function sistemaRail(){
+  RAIL.attesa = false;
+  var y = window.scrollY, d = y - RAIL.y;
+  RAIL.y = y;
+  if(getComputedStyle($rail).position !== "sticky"){ $rail.style.top = ""; RAIL.top = null; return; }
+  if(RAIL.base === null){ $rail.style.top = ""; RAIL.base = parseFloat(getComputedStyle($rail).top) || 79; }
+  var minimo = Math.min(RAIL.base, window.innerHeight - $rail.offsetHeight - 16);
+  if(RAIL.top === null) RAIL.top = RAIL.base;
+  RAIL.top = Math.max(minimo, Math.min(RAIL.base, RAIL.top - d));
+  $rail.style.top = RAIL.top + "px";
+}
+function chiediRail(){ if(!RAIL.attesa){ RAIL.attesa = true; requestAnimationFrame(sistemaRail); } }
+window.addEventListener("scroll", chiediRail, {passive:true});
+window.addEventListener("resize", chiediRail);
+if(window.ResizeObserver) new ResizeObserver(chiediRail).observe($rail);
+sistemaRail();
+
 if(window.MathJax && window.MathJax.startup && window.MathJax.startup.promise){
   window.MathJax.startup.promise.then(function(){ S.mathPronto=true; tex($main); tex($rail); });
 }
