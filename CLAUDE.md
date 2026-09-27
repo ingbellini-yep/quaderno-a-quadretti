@@ -18,6 +18,7 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `index.html` | motore del sito (stili, indice, quiz, correttore, revisione, svolgimento guidato, importazione di esercizi, scheda e trasferimento dei progressi). Formato claude.ai: **senza** i tag `<!doctype>`, `<html>`, `<head>`, `<body>` | sì |
 | `contenuti-matematica.js` | contenuti di matematica | sì |
 | `contenuti-fisica.js` | contenuti di fisica | sì |
+| `laboratorio.js` | motori grafici condivisi: grafici delle equazioni (`Laboratorio.grafico`), animazione del moto su rotaia (`Laboratorio.moto`), tracciatore di equazioni scritte dallo studente, lettore di espressioni senza `eval`, controlli usati da `verifica.js`. Schema delle scene in testa al file | sì |
 | `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic; **va rigenerato** da `index.html` dopo ogni modifica al motore (testa fino a `<title>` + `index.html` + `</body></html>`) | no (solo locale) |
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
 | `CLAUDE.md` | queste istruzioni di progetto | sì |
@@ -25,8 +26,10 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `.claude/skills/frontend-design/` | skill `frontend-design` di Anthropic: linee guida di design per chi lavora sull'interfaccia del sito | sì |
 | `skills-lock.json` | origine e impronta delle skill installate | sì |
 
-I tre file pubblicati devono restare nella stessa cartella: la pagina carica i contenuti per
-percorso relativo.
+I quattro file pubblicati (`index.html`, `laboratorio.js` e i due file dei contenuti) devono
+restare nella stessa cartella: la pagina li carica per percorso relativo. Anche su claude.ai
+`laboratorio.js` va pubblicato insieme alla pagina, come i contenuti; se manca, al posto delle
+figure compare un avviso e il resto funziona.
 
 ### Skill installate
 
@@ -49,9 +52,10 @@ va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il co
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
 concetto di funzione e piano cartesiano; proporzionalità diretta e inversa.
 
-**Fisica — 5 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
+**Fisica — 6 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
-di grandezza (convenzione: mantissa < 5 → 10^n, altrimenti 10^(n+1)).
+di grandezza (convenzione: mantissa < 5 → 10^n, altrimenti 10^(n+1)); moto rettilineo
+uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed esercizi).
 
 Gli anni dal 2º al 5º compaiono nell'indice come «da aggiungere su richiesta».
 
@@ -67,6 +71,22 @@ con una **guida allo svolgimento** (campo `guida`: passi `{s, r, k}`, vedi sotto
 
 I tre tipi di esercizio sono: risposta aperta testuale, risposta aperta numerica con
 tolleranza dichiarata, scelta multipla.
+
+Campi facoltativi per le figure (schema completo in testa a `laboratorio.js`):
+
+- `laboratorio` nell'argomento: elenco di scene interattive, mostrate nella sezione
+  «Laboratorio» fra formulario ed esempi. Tipi: `moto` (carrelli su rotaia con legge oraria
+  `s(t)` o moto a tratti, stroboscopia, fotocellule, cursori dei parametri, grafici s-t e v-t
+  sincronizzati), `grafico`, `tracciatore` (lo studente scrive le equazioni);
+- `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati)
+  mostrato sotto il testo, nel quiz, nella revisione e nello svolgimento guidato.
+
+Le espressioni si scrivono come nel quaderno (`20+10t`, `s0+v*t`, virgola decimale ammessa).
+Stile delle figure: tratti sottili, griglia leggera, al massimo 4 serie con i colori validati
+`--lab-s1…--lab-s4` (blu, arancio, verde acqua, viola, con varianti per il tema scuro),
+legenda da due serie in su, mirino con lettura dei valori e tabella dei valori per ogni grafico.
+Nuovi tipi di scena (moto accelerato, molla, leva, piano inclinato...) si aggiungono con
+`Laboratorio.registra("tipo", function(host, spec){...})` e un ramo in `Laboratorio.controlla`.
 
 Nelle stringhe JavaScript i comandi LaTeX vanno scritti con backslash **doppio**
 (`\\cdot`, `\\frac`, `\\,`): con il backslash singolo JavaScript lo scarta e MathJax
@@ -150,8 +170,16 @@ per esercizio.
    lezioni e a volte rifiuta le connessioni automatiche: in quel caso confermare la pagina
    almeno tramite l'indice di un motore di ricerca.
 
-Le verifiche 1 e 2 (più il controllo dei backslash LaTeX e delle guide) sono automatizzate
-in `verifica.js`: `node verifica.js .` dalla cartella del progetto.
+Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide e di grafici e scene del
+laboratorio) sono automatizzate in `verifica.js`: `node verifica.js .` dalla cartella del progetto.
+
+Dopo modifiche a `laboratorio.js` o all'impaginazione conviene provare la pagina in un browser
+vero, anche a 390 px di larghezza e in tema scuro: le figure si adattano alla larghezza del
+contenitore e non devono mai causare scorrimento orizzontale.
+
+Nelle sessioni in cloud di Claude Code il proxy di rete blocca YouMath, Edutecnica, Wikipedia e
+cdnjs: i link si confermano con la ricerca web e, per provare la pagina, MathJax si scarica dal
+registro npm (`npm pack mathjax@3.2.2`) e si serve in locale.
 
 Strumenti sulla macchina (settembre 2026): Node.js LTS 24 in `C:\Program Files\nodejs`
 (installato con winget; le shell aperte prima dell'installazione non lo vedono nel PATH),
