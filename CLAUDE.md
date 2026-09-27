@@ -48,9 +48,12 @@ va rifatta la stessa operazione (spostare i file e cancellare `.agents/` e il co
 
 ## Stato dei contenuti
 
-**Matematica — 6 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
+**Matematica — 7 argomenti** (1º anno): calcolo letterale; scomposizione in fattori;
 angoli, triangoli e criteri di congruenza; perpendicolarità, parallelismo e poligoni;
-concetto di funzione e piano cartesiano; proporzionalità diretta e inversa.
+concetto di funzione e piano cartesiano; proporzionalità diretta e inversa; disequazioni di
+primo grado (`mat1-disequazioni`: intervalli, principi di equivalenza, sistemi, studio del
+segno, fratte, con lo schema dei segni interattivo). Le disequazioni di secondo grado, che
+richiedono la parabola, andranno nel 2º anno.
 
 **Fisica — 7 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
@@ -81,9 +84,14 @@ Campi facoltativi per le figure (schema completo in testa a `laboratorio.js`):
   `s(t)` anche di secondo grado, oppure moto a tratti con velocità e accelerazione per tratto;
   stroboscopia, fotocellule, cursori dei parametri, frecce di velocità e accelerazione, grafici
   s-t e v-t sincronizzati e, con `grafici:["st","vt","at"]`, anche a-t), `grafico`,
-  `tracciatore` (lo studente scrive le equazioni);
-- `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati)
-  mostrato sotto il testo, nel quiz, nella revisione e nello svolgimento guidato.
+  `tracciatore` (lo studente scrive le equazioni), `segni` (schema dei segni di un prodotto o
+  di un quoziente di fattori, oppure di un sistema di disequazioni, con la soluzione scritta
+  come disuguaglianze e come intervalli; `editabile`, `soluzione:false`, `soloFattori:true`);
+- `grafico` in un esempio o in un esercizio: un grafico (o un elenco di grafici affiancati,
+  anche schemi dei segni) mostrato sotto il testo, nel quiz, nella revisione e nello
+  svolgimento guidato. Nei grafici `evidenzia:{serie, verso}` segna sull'asse x dove la
+  funzione è > 0, ≥ 0, < 0 o ≤ 0 (lettura grafica di una disequazione). Negli esercizi uno
+  schema dei segni non deve svelare la risposta: `soluzione:false, soloFattori:true`.
 
 Le espressioni si scrivono come nel quaderno (`20+10t`, `s0+v*t`, virgola decimale ammessa).
 Stile delle figure: tratti sottili, griglia leggera, al massimo 4 serie con i colori validati
@@ -95,6 +103,10 @@ Nuovi tipi di scena (moto accelerato, molla, leva, piano inclinato...) si aggiun
 Nelle stringhe JavaScript i comandi LaTeX vanno scritti con backslash **doppio**
 (`\\cdot`, `\\frac`, `\\,`): con il backslash singolo JavaScript lo scarta e MathJax
 riceve `cdot` come testo.
+
+Il segno `<` seguito da una lettera va scritto con uno spazio (`$1 < x < 4$`, non `$1<x<4$`):
+il browser lo prenderebbe per l'inizio di un tag HTML e il resto del testo sparirebbe.
+`verifica.js` lo controlla.
 
 Per estendere:
 

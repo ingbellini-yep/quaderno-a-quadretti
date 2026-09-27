@@ -41,6 +41,7 @@
      punti:    [ {x:20, y:400, testo:"incontro"} ]
      pendenza: {serie:0, da:2, a:6}  triangolo con Δx e Δy
      area:     {serie:0, da:0, a:10, testo:"Δs = 120 m"}  area fra la curva e l'asse x
+     evidenzia:{serie:0, verso:">"}  segna sull'asse x dove la serie è > 0 (o >=, <, <=)
      altezza:  pixel (facoltativo)
 
    SCHEMA DI UNA SCENA DI MOTO  {tipo:"moto", ...}
@@ -60,6 +61,17 @@
      st, vt, at: {y:[min,max]} intervalli fissi dei grafici
      vmax, amax: velocità e accelerazione che corrispondono alle frecce più lunghe
      Se un corpo accelera compaiono la lettura di a e la freccia dell'accelerazione.
+
+   SCHEMA DELLO STUDIO DEL SEGNO  {tipo:"segni", ...}
+     num:      ["x-2", "x+3"]   fattori al numeratore
+     den:      ["2x-1"]         fattori al denominatore (facoltativo)
+     verso:    ">" | ">=" | "<" | "<="   confronto con 0 del prodotto (o quoziente)
+     sistema:  ["3x-2 > 4", "2x-1 <= x+5"]   in alternativa: sistema di disequazioni
+     editabile: true             lo studente modifica fattori, verso o disequazioni
+     soluzione: false            nasconde il riquadro con la soluzione
+     soloFattori: true           mostra solo le righe dei fattori, senza la riga del risultato
+                                 (per gli esercizi: con soluzione:false non svela la risposta)
+     titolo, testo: intestazione della scena; senza, la figura è solo lo schema
 
    SCHEMA DEL TRACCIATORE  {tipo:"tracciatore", ...}
      titolo, testo, assi, unita, x, equazioni:["s = 20 + 10t", "s = 100 - 5t"]
@@ -304,7 +316,7 @@ var CSS = [
 ".lab-par input{width:100%}",
 ".lab-eventi{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:13.5px;color:var(--ink-2,#444)}",
 ".lab-eventi b{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-weight:500;color:var(--ink,#111)}",
-".lab-grafici{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;min-width:0}",
+".lab-grafici{display:grid;align-items:start;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;min-width:0}",
 ".lab-fig{margin:0;border:1px solid var(--line,#ddd);border-radius:14px;background:var(--surface,#fff);padding:10px 10px 8px;min-width:0;display:grid;gap:6px}",
 ".lab-cap{font-size:13.5px;font-weight:600;color:var(--ink,#111);padding:2px 4px 0}",
 ".lab-plot{position:relative;min-width:0}",
@@ -343,6 +355,19 @@ var CSS = [
 ".lab-es{margin:2px 0 18px;max-width:620px}",
 ".lab-es .lab-grafici{grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}",
 ".esempio .lab-es{margin:14px 18px 0;max-width:none}",
+".lab-segni-ctrl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px 16px;align-items:end}",
+".lab-segni-ctrl label{display:grid;gap:4px;font-size:13px;color:var(--ink-2,#444)}",
+".lab-segni-ctrl input,.lab-segni-ctrl textarea{width:100%;min-width:0;padding:8px 11px;border:1.5px solid var(--line-strong,#bbb);border-radius:10px;background:var(--surface,#fff);color:var(--ink,#111);font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:14.5px;resize:vertical}",
+".lab-segni-ctrl input:focus,.lab-segni-ctrl textarea:focus{outline:none;border-color:var(--accent,#2a78d6)}",
+".lab-segni-ctrl select{font:inherit;font-size:14px;padding:7px 9px;border:1.5px solid var(--line-strong,#bbb);border-radius:10px;background:var(--surface,#fff);color:var(--ink,#111)}",
+".lab-aiuto{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--muted,#666)}",
+".lab-errore-blocco{margin:0;font-size:13px;color:var(--err,#c33)}",
+".lab-soluzione{display:grid;gap:3px;padding:10px 14px;border-radius:12px;background:var(--accent-soft,#eef);font-size:14px;color:var(--ink-2,#444)}",
+".lab-soluzione b{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-weight:500;color:var(--ink,#111)}",
+".lab-svg .lab-riga-eti{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:12.5px;fill:var(--ink-2,#444)}",
+".lab-svg .lab-riga-fin{font-family:\"Asap\",system-ui,sans-serif;font-weight:700;fill:var(--ink,#111)}",
+".lab-svg .lab-segno{font-size:12px;fill:var(--muted,#666)}",
+".lab-svg .lab-zero-segno{font-size:13px;font-weight:600;fill:var(--ink,#111);paint-order:stroke;stroke:var(--surface,#fff);stroke-width:5px}",
 ".lab-avviso{font-size:13px;color:var(--muted,#666);padding:10px 12px;border:1px dashed var(--line-strong,#bbb);border-radius:10px}",
 ].join("\n");
 function iniettaStile(){
@@ -532,6 +557,7 @@ function grafico(host, spec){
     percorsi.forEach(function(d, i){ h.push('<path d="'+d+'" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:'+colore(serie[i].colore)+'"/>'); });
     h.push('</g>');
     if(spec.pendenza) h.push(triangolo(spec.pendenza));
+    if(spec.evidenzia) h.push(evidenziaSvg(spec.evidenzia));
     h.push('</g>');
     (spec.punti||[]).forEach(function(p){ h.push(puntoSvg(p)); });
     h.push(etichetteDirette());
@@ -578,6 +604,24 @@ function grafico(host, spec){
     if(p.testo){
       var dx = x > W-M.r-110 ? -9 : 9, anc = dx < 0 ? "end" : "start", dy = y < M.t+18 ? 16 : -9;
       s += '<text class="lab-nota" x="'+(x+dx)+'" y="'+(y+dy)+'" text-anchor="'+anc+'">'+attr(p.testo)+'</text>';
+    }
+    return s;
+  }
+  /* sull'asse x, i tratti in cui la serie soddisfa il verso (> 0, ≥ 0, < 0, ≤ 0) */
+  function evidenziaSvg(e){
+    var o = serie[e.serie||0], verso = normVerso(e.verso);
+    if(!o || !verso) return "";
+    var n = Math.max(50, Math.round(W-M.l-M.r)), s = "", da = null, prec = null;
+    var yb = Math.min(Math.max(py(0), M.t+4), H-M.b-4), col = colore(o.colore);
+    for(var k=0; k<=n; k++){
+      var x = X[0]+(X[1]-X[0])*k/n, ok = soddisfa(o.valore(x), verso);
+      if(ok && da===null) da = x;
+      if(da!==null && (!ok || k===n)){
+        var fine = ok ? x : prec;
+        s += '<rect x="'+px(da).toFixed(1)+'" y="'+(yb-4)+'" width="'+Math.max(2, px(fine)-px(da)).toFixed(1)+'" height="8" rx="4" style="fill:'+col+'" fill-opacity=".38"/>';
+        da = null;
+      }
+      prec = x;
     }
     return s;
   }
@@ -1123,6 +1167,269 @@ function tracciatore(host, spec){
   return {elemento: root, ridisegna: ridisegna};
 }
 
+/* ================= SCHEMA DEI SEGNI =================
+   Studio del segno di un prodotto o di un quoziente di fattori, oppure di un sistema di
+   disequazioni. Per ogni fattore una riga (linea continua dove è positivo, tratteggiata
+   dove è negativo, 0 sugli zeri del numeratore, una crocetta su quelli del denominatore); l'ultima
+   riga mostra il segno complessivo e, evidenziati, gli intervalli che risolvono la
+   disequazione. La soluzione è scritta come disuguaglianze e come unione di intervalli. */
+function normVerso(v){
+  return {">":">", ">=":">=", "=>":">=", "≥":">=", "<":"<", "<=":"<=", "=<":"<=", "≤":"<="}[String(v==null?">":v).replace(/\s/g,"")] || null;
+}
+function simboloVerso(v){ return {">":">", ">=":"≥", "<":"<", "<=":"≤"}[v]; }
+function soddisfa(y, verso){
+  if(!isFinite(y)) return false;
+  var z = Math.abs(y) < 1e-9 ? 0 : y;
+  return verso===">" ? z > 0 : verso===">=" ? z >= 0 : verso==="<" ? z < 0 : z <= 0;
+}
+/* un numero come frazione con denominatore piccolo: -1.5 -> "−3/2" */
+function frazione(x){
+  if(!isFinite(x)) return x > 0 ? "+∞" : "−∞";
+  if(Math.abs(x) < 1e-12) return "0";
+  for(var d=1; d<=12; d++){
+    var n = Math.round(x*d);
+    if(Math.abs(x-n/d) < 1e-9) return (n < 0 ? "−" : "") + Math.abs(n) + (d > 1 ? "/"+d : "");
+  }
+  return formattaCorto(x, 3);
+}
+/* testo di un'espressione con spazi e segni tipografici: "2x-4" -> "2x − 4" */
+function bello(e){
+  return String(e).trim().replace(/\*/g,"·").replace(/\s+/g,"")
+    .replace(/(.)([+\-])/g, function(m, a, s){ return "([^".indexOf(a) >= 0 ? a+s : a+" "+(s==="-"?"−":"+")+" "; })
+    .replace(/^-/,"−").replace(/\(-/g,"(−").replace(/\^2/g,"²").replace(/\^3/g,"³");
+}
+function zeriDi(f){
+  var c0 = f(0), c1 = (f(1)-f(-1))/2, c2 = (f(1)-2*f(0)+f(-1))/2;
+  var lineare = isFinite(c0) && isFinite(c1) && Math.abs(c2) < 1e-9 &&
+    [3.7, -11.3, 25.1].every(function(z){ var y = f(z); return Math.abs(y-(c0+c1*z)) <= 1e-7*(1+Math.abs(y)); });
+  if(lineare) return Math.abs(c1) < 1e-12 ? [] : [Math.round(-c0/c1*1e9)/1e9];
+  return incroci(f, function(){ return 0; }, -100, 100, 20000).map(function(x){ return Math.round(x*1e9)/1e9; });
+}
+function leggiDisequazione(testo, v){
+  var m = /^(.*?)(>=|<=|=>|=<|≥|≤|>|<)(.*)$/.exec(String(testo));
+  if(!m || !m[1].trim() || !m[3].trim()) throw Errore("Scrivi una disequazione completa, con il verso: >, <, ≥ (>=) oppure ≤ (<=).");
+  var verso = normVerso(m[2]);
+  return {f:funzione("("+m[1]+")-("+m[3]+")", v, {}), verso:verso, testo:bello(m[1])+" "+simboloVerso(verso)+" "+bello(m[3])};
+}
+/* intervalli (fusi) in cui vale il predicato P, dati i punti critici ordinati */
+function intervalliDi(P, punti){
+  var pezzi = [], n = punti.length;
+  if(!n) pezzi.push({da:-Infinity, a:Infinity, ok:P(0)});
+  else {
+    pezzi.push({da:-Infinity, a:punti[0], ok:P(punti[0]-1)});
+    punti.forEach(function(p, i){
+      pezzi.push({punto:p, ok:P(p)});
+      pezzi.push({da:p, a:(i < n-1 ? punti[i+1] : Infinity), ok:P(i < n-1 ? (p+punti[i+1])/2 : p+1)});
+    });
+  }
+  var run = null, out = [];
+  pezzi.forEach(function(q){
+    if(q.ok){
+      if(!run) run = q.punto!=null ? {da:q.punto, daChiuso:true} : {da:q.da, daChiuso:false};
+      if(q.punto!=null){ run.a = q.punto; run.aChiuso = true; } else { run.a = q.a; run.aChiuso = false; }
+    } else if(run){ out.push(run); run = null; }
+  });
+  if(run) out.push(run);
+  return out;
+}
+function testoSoluzione(runs, v){
+  if(!runs.length) return {dis:"nessuna soluzione", int:"S = ∅"};
+  var dis = [], int = [];
+  runs.forEach(function(r){
+    var A = r.da===-Infinity, B = r.a===Infinity;
+    if(A && B){ dis.push("per ogni "+v+" reale"); int.push("ℝ"); return; }
+    if(!A && !B && Math.abs(r.a-r.da) < 1e-12){ dis.push(v+" = "+frazione(r.da)); int.push("{"+frazione(r.da)+"}"); return; }
+    dis.push(A ? v+" "+(r.aChiuso?"≤":"<")+" "+frazione(r.a)
+           : B ? v+" "+(r.daChiuso?"≥":">")+" "+frazione(r.da)
+           : frazione(r.da)+" "+(r.daChiuso?"≤":"<")+" "+v+" "+(r.aChiuso?"≤":"<")+" "+frazione(r.a));
+    int.push((A ? "(−∞" : (r.daChiuso?"[":"(")+frazione(r.da)) + "; " + (B ? "+∞)" : frazione(r.a)+(r.aChiuso?"]":")")));
+  });
+  return {dis:dis.join(" ∨ "), int:"S = "+int.join(" ∪ ")};
+}
+function risolviSegni(spec){
+  var v = spec.variabile || "x", righe = [], tutti = [], verso = normVerso(spec.verso);
+  if(spec.sistema){
+    spec.sistema.forEach(function(d){
+      var q = typeof d==="string" ? leggiDisequazione(d, v)
+            : {f:funzione(d.f, v, {}), verso:normVerso(d.verso), testo:bello(d.f)+" "+simboloVerso(normVerso(d.verso))+" 0"};
+      if(!q.verso) throw Errore("Verso non valido in «"+(d.verso)+"».");
+      var z = zeriDi(q.f);
+      righe.push({tipo:"cond", testo:q.testo, f:q.f, verso:q.verso, zeri:z, P:function(x){ return soddisfa(q.f(x), q.verso); }});
+      tutti = tutti.concat(z);
+    });
+    if(!righe.length) throw Errore("Scrivi almeno una disequazione.");
+  } else {
+    if(!verso) throw Errore("Verso non valido: usa >, <, ≥ oppure ≤.");
+    [["num", spec.num||[]], ["den", spec.den||[]]].forEach(function(g){
+      g[1].forEach(function(e){
+        var f = funzione(e, v, {}), z = zeriDi(f);
+        righe.push({tipo:g[0], testo:bello(e), f:f, zeri:z}); tutti = tutti.concat(z);
+      });
+    });
+    if(!righe.some(function(r){ return r.tipo==="num"; })) throw Errore("Serve almeno un fattore al numeratore (anche solo 1).");
+  }
+  tutti.sort(function(a,b){ return a-b; });
+  var punti = [];
+  tutti.forEach(function(p){ if(!punti.length || Math.abs(p-punti[punti.length-1]) > 1e-7) punti.push(p); });
+  var valore = function(x){
+    var y = 1;
+    for(var i=0; i<righe.length; i++){
+      var r = righe[i], fx = r.f(x);
+      if(r.tipo==="den"){ if(Math.abs(fx) < 1e-9 || !isFinite(fx)) return NaN; y /= fx; } else y *= fx;
+    }
+    return y;
+  };
+  var P = spec.sistema ? function(x){ return righe.every(function(r){ return r.P(x); }); } : function(x){ return soddisfa(valore(x), verso); };
+  var runs = intervalliDi(P, punti);
+  righe.forEach(function(r){ if(r.P) r.runs = intervalliDi(r.P, punti); });
+  var t = testoSoluzione(runs, v);
+  return {righe:righe, punti:punti, runs:runs, valore:valore, sistema:!!spec.sistema, verso:verso, dis:t.dis, int:t.int, variabile:v};
+}
+
+function segni(host, spec){
+  iniettaStile();
+  var root = mk("div","lab-scena lab-segni"), statica = !spec.titolo && !spec.testo && !spec.editabile;
+  host.appendChild(root);
+  testata(root, spec);
+  var cur = {num:(spec.num||[]).slice(), den:(spec.den||[]).slice(), verso:spec.verso||">", sistema:spec.sistema ? spec.sistema.slice() : null};
+  var v = spec.variabile || "x", err = null;
+  if(spec.editabile){
+    var box = mk("div","lab-segni-ctrl");
+    if(cur.sistema){
+      var lS = mk("label"); lS.appendChild(mk("span", null, "Disequazioni del sistema, una per riga"));
+      var ta = mk("textarea"); ta.rows = Math.max(2, cur.sistema.length); ta.spellcheck = false;
+      ta.value = cur.sistema.map(function(d){ return typeof d==="string" ? d : d.f+" "+d.verso+" 0"; }).join("\n");
+      lS.appendChild(ta); box.appendChild(lS);
+      ta.addEventListener("input", function(){ cur.sistema = ta.value.split("\n").filter(function(s){ return s.trim(); }); aggiorna(); });
+    } else {
+      var campo = function(nome, val, fn){
+        var l = mk("label"); l.appendChild(mk("span", null, nome));
+        var i = mk("input"); i.type = "text"; i.value = val; i.spellcheck = false; i.autocomplete = "off";
+        i.addEventListener("input", function(){ fn(i.value); aggiorna(); });
+        l.appendChild(i); box.appendChild(l);
+      };
+      var spezza = function(s){ return s.split(";").map(function(x){ return x.trim(); }).filter(Boolean); };
+      campo("Fattori al numeratore", cur.num.join("; "), function(s){ cur.num = spezza(s); });
+      campo("Fattori al denominatore (se ci sono)", cur.den.join("; "), function(s){ cur.den = spezza(s); });
+      var lV = mk("label"); lV.appendChild(mk("span", null, "Verso"));
+      var sel = mk("select");
+      [[">","> 0"],[">=","≥ 0"],["<","< 0"],["<=","≤ 0"]].forEach(function(o){ var op = mk("option", null, o[1]); op.value = o[0]; if(normVerso(cur.verso)===o[0]) op.selected = true; sel.appendChild(op); });
+      sel.addEventListener("change", function(){ cur.verso = sel.value; aggiorna(); });
+      lV.appendChild(sel); box.appendChild(lV);
+      box.appendChild(mk("p","lab-aiuto","Separa i fattori con il punto e virgola, per esempio: x - 2; x + 3"));
+    }
+    root.appendChild(box);
+    err = mk("p","lab-errore-blocco"); err.hidden = true; err.setAttribute("aria-live","polite"); root.appendChild(err);
+  }
+  var fig = mk("figure","lab-fig"); root.appendChild(fig);
+  var svg = document.createElementNS(NS, "svg"); svg.setAttribute("class","lab-svg"); svg.setAttribute("role","img");
+  fig.appendChild(svg);
+  var sol = mk("div","lab-soluzione"); sol.setAttribute("aria-live","polite");
+  if(spec.soluzione!==false) root.appendChild(sol);
+  var ris = null;
+
+  function disegna(){
+    if(!ris) return;
+    var W = Math.max(280, Math.round(fig.clientWidth - 22 || 560));
+    var etichette = ris.righe.map(function(r){ return r.tipo==="den" ? r.testo+"  (den.)" : r.testo; });
+    var fin = ris.sistema ? "sistema" : (ris.righe.length > 1 ? "risultato" : "soluzione");
+    var lung = Math.max.apply(null, etichette.concat([fin]).map(function(s){ return s.length; }));
+    var LW = Math.max(80, Math.min(W*(W < 420 ? 0.5 : 0.42), lung*7.3+14)), x0 = LW+22, x1 = W-18, n = ris.punti.length;
+    var pos = ris.punti.map(function(p, i){ return x0 + (i+1)*(x1-x0)/(n+1); });
+    var xDi = function(val){
+      if(val===-Infinity) return x0-14;
+      if(val===Infinity) return x1+10;
+      for(var i=0; i<n; i++) if(Math.abs(ris.punti[i]-val) < 1e-7) return pos[i];
+      return x0;
+    };
+    var senzaFine = !!spec.soloFattori;
+    var RH = 36, T = 26, righe = ris.righe.length + (senzaFine ? 0 : 1), H = T + righe*RH + 6, h = [];
+    pos.forEach(function(x, i){
+      h.push('<line x1="'+x+'" x2="'+x+'" y1="'+(T-8)+'" y2="'+(H-4)+'" style="stroke:var(--line,#ddd)"/>');
+      h.push('<text x="'+x+'" y="14" text-anchor="middle" class="lab-eti">'+attr(frazione(ris.punti[i]))+'</text>');
+    });
+    h.push('<text x="'+(x1+10)+'" y="14" text-anchor="end" class="lab-tit">'+attr(v)+'</text>');
+    var linea = function(y, segno, xa, xb){
+      if(xb-xa < 4 || segno===0) return '';
+      var mid = (xa+xb)/2, s = '<line x1="'+xa+'" x2="'+xb+'" y1="'+y+'" y2="'+y+'" stroke-width="1.8" style="stroke:var(--ink-2,#444)"'+(segno < 0 ? ' stroke-dasharray="5 4"' : '')+'/>';
+      return s + '<text x="'+mid+'" y="'+(y-7)+'" text-anchor="middle" class="lab-segno">'+(segno > 0 ? '+' : '−')+'</text>';
+    };
+    var segnoIn = function(f, a, b){
+      var x = a===-Infinity ? (b===Infinity ? 0 : b-1) : (b===Infinity ? a+1 : (a+b)/2), y = f(x);
+      return !isFinite(y) ? 0 : (Math.abs(y) < 1e-12 ? 0 : (y > 0 ? 1 : -1));
+    };
+    var bordi = [-Infinity].concat(ris.punti, [Infinity]);
+    var fascia = function(runs, y, col){
+      var s = '';
+      runs.forEach(function(r){
+        var xa = xDi(r.da), xb = xDi(r.a);
+        if(xb - xa > 1) s += '<rect x="'+xa+'" y="'+(y-6)+'" width="'+(xb-xa)+'" height="12" rx="6" style="fill:'+col+'" fill-opacity=".22"/>';
+        [[r.da, r.daChiuso], [r.a, r.aChiuso]].forEach(function(e){
+          if(!isFinite(e[0])) return;
+          s += '<circle cx="'+xDi(e[0])+'" cy="'+y+'" r="4.5" stroke-width="2" style="stroke:'+col+';fill:'+(e[1] ? col : 'var(--surface,#fff)')+'"/>';
+        });
+      });
+      return s;
+    };
+    ris.righe.forEach(function(r, k){
+      var y = T + k*RH + 22;
+      h.push('<text x="4" y="'+(y+4)+'" class="lab-riga-eti">'+attr(etichette[k])+'</text>');
+      if(r.tipo==="cond"){
+        h.push(fascia(r.runs, y, colore(k)));
+        return;
+      }
+      for(var i=0; i<bordi.length-1; i++){
+        var xa = xDi(bordi[i]) + (i ? 7 : 0), xb = xDi(bordi[i+1]) - (i < bordi.length-2 ? 7 : 0);
+        h.push(linea(y, segnoIn(r.f, bordi[i], bordi[i+1]), xa, xb));
+      }
+      ris.punti.forEach(function(p, i){
+        if(Math.abs(r.f(p)) >= 1e-9) return;
+        if(r.tipo==="den"){
+          /* zero del denominatore: crocetta, lì la frazione non esiste */
+          h.push('<path d="M'+(pos[i]-4.5)+','+(y-4.5)+'l9,9m0,-9l-9,9" stroke-width="2.2" stroke-linecap="round" style="stroke:var(--ink,#111)"/>');
+        } else h.push('<text x="'+pos[i]+'" y="'+(y+4.5)+'" text-anchor="middle" class="lab-zero-segno">0</text>');
+      });
+    });
+    var yR = T + ris.righe.length*RH + 22;
+    if(senzaFine) yR = -1000;
+    if(!senzaFine) h.push('<line x1="4" x2="'+(W-4)+'" y1="'+(yR-20)+'" y2="'+(yR-20)+'" style="stroke:var(--line-strong,#bbb)"/>');
+    if(!senzaFine){
+      h.push('<text x="4" y="'+(yR+4)+'" class="lab-riga-eti lab-riga-fin">'+attr(fin)+'</text>');
+      h.push(fascia(ris.runs, yR, "var(--accent,#2a78d6)"));
+    }
+    if(!ris.sistema && !senzaFine){
+      for(var j=0; j<bordi.length-1; j++){
+        var xa2 = xDi(bordi[j]) + (j ? 7 : 0), xb2 = xDi(bordi[j+1]) - (j < bordi.length-2 ? 7 : 0);
+        h.push(linea(yR, segnoIn(ris.valore, bordi[j], bordi[j+1]), xa2, xb2));
+      }
+    }
+    svg.setAttribute("viewBox", "0 0 "+W+" "+H); svg.setAttribute("width", W); svg.setAttribute("height", H);
+    svg.innerHTML = h.join("");
+    svg.setAttribute("aria-label", (ris.sistema ? "Schema del sistema. " : "Schema dei segni. ") + "Punti critici: " +
+      (ris.punti.length ? ris.punti.map(frazione).join(", ") : "nessuno") + (senzaFine ? "." : ". Soluzione: " + ris.dis + "."));
+  }
+  function aggiorna(){
+    try{
+      ris = risolviSegni({variabile:v, num:cur.num, den:cur.den, verso:cur.verso, sistema:cur.sistema});
+      if(err) err.hidden = true;
+      fig.style.opacity = "";
+    }catch(e){
+      if(err){ err.textContent = e.message; err.hidden = false; }
+      fig.style.opacity = ".45";
+      if(!ris) throw e;
+      return;
+    }
+    sol.innerHTML = "";
+    var r1 = mk("div"); r1.appendChild(document.createTextNode("Soluzione: ")); r1.appendChild(mk("b", null, ris.dis));
+    var r2 = mk("div"); r2.appendChild(document.createTextNode("Come insieme: ")); r2.appendChild(mk("b", null, ris.int));
+    sol.appendChild(r1); sol.appendChild(r2);
+    disegna();
+  }
+  aggiorna();
+  osservaLarghezza(fig, disegna);
+  return {elemento:root, risultato:function(){ return ris; }};
+}
+
 /* ================= registro delle scene ================= */
 var TIPI = {
   grafico: function(host, spec){
@@ -1130,7 +1437,8 @@ var TIPI = {
     return grafico(host, spec);
   },
   moto: moto,
-  tracciatore: tracciatore
+  tracciatore: tracciatore,
+  segni: segni
 };
 function registra(tipo, fn){ TIPI[tipo] = fn; }
 function monta(host, spec){
@@ -1182,6 +1490,7 @@ function controlla(spec){
       else p.push("serie "+i+": manca f, segmenti o punti");
     });
     (spec.punti||[]).forEach(function(q, i){ if(!isFinite(q.x) || !isFinite(q.y)) p.push("punto "+i+" non valido"); });
+    if(spec.evidenzia && !(spec.serie && spec.serie[spec.evidenzia.serie||0] && normVerso(spec.evidenzia.verso))) p.push("evidenzia non valida");
     [["pendenza",spec.pendenza],["area",spec.area]].forEach(function(z){
       if(z[1] && !(spec.serie && spec.serie[z[1].serie||0] && z[1].a > z[1].da)) p.push(z[0]+" non valida");
     });
@@ -1206,6 +1515,10 @@ function controlla(spec){
     if(spec.vt) intervallo(spec.vt.y, "vt.y");
     if(spec.at) intervallo(spec.at.y, "at.y");
     (spec.grafici||[]).forEach(function(g){ if(["st","vt","at"].indexOf(g) < 0) p.push("grafico sconosciuto «"+g+"»"); });
+  } else if(tipo==="segni"){
+    if(spec.sistema && (!Array.isArray(spec.sistema) || !spec.sistema.length)) p.push("sistema vuoto");
+    try{ var r = risolviSegni(spec); if(!r.punti.length && !spec.sistema) p.push("nessun punto critico"); }
+    catch(e){ p.push("segni: "+e.message); }
   } else if(tipo==="tracciatore"){
     intervallo(spec.x, "x");
     var X2 = spec.x || [0,10];
@@ -1221,6 +1534,7 @@ var API = {
   formatta: formatta, formattaCorto: formattaCorto, testoLineare: testoLineare, testoPolinomio: testoPolinomio,
   grafico: grafico, moto: moto, tracciatore: tracciatore,
   monta: monta, registra: registra, controlla: controlla,
+  segni: segni, risolviSegni: risolviSegni, leggiDisequazione: leggiDisequazione,
   tipi: function(){ return Object.keys(TIPI); }
 };
 if(typeof window!=="undefined") window.Laboratorio = API;
