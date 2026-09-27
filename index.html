@@ -368,7 +368,7 @@ window.MathJax = {
    =================================================================== */
 var MATERIE = [
   { id:"matematica", nome:"Matematica", sigla:"∑", accento:"mat",
-    anni:{ 1: (window.CONTENUTI_MATEMATICA || []) } },
+    anni:{ 1: (window.CONTENUTI_MATEMATICA || []), 2: (window.CONTENUTI_MATEMATICA_2 || []) } },
   { id:"fisica", nome:"Fisica", sigla:"ƒ", accento:"fis",
     anni:{ 1: (window.CONTENUTI_FISICA || []) } }
 ];
@@ -460,9 +460,11 @@ function setAccento(materia){
    x² ≡ x^2 ≡ x^(2) ≡ x2, √(2) ≡ √2 ≡ sqrt(2), ∛8 ≡ ³√8 ≡ cbrt(8), ≥ ≡ >=, ≤ ≡ <=,
    (1)/(2) ≡ 1/2. Le parentesi si tolgono solo attorno a un numero o a una lettera. */
 function normalizza(t){
-  return String(t==null?"":t).toLowerCase().trim()
+  var s = String(t==null?"":t).toLowerCase().trim()
     .replace(/[−–—]/g,"-")
-    .replace(/>=|=>/g,"≥").replace(/<=|=</g,"≤")
+    .replace(/>=|=>/g,"≥").replace(/<=|=</g,"≤").replace(/!=|<>|=\/=/g,"≠")
+    .replace(/\s+(?:o|oppure|or)\s+/g,"∨").replace(/([)\]\[])\s*u\s*(?=[(\[\]])/g,"$1∪")
+    .replace(/([+\-;,(\[\]]|^)\s*(?:infinito|inf)/g,"$1∞").replace(/\+\s*∞/g,"∞")
     .replace(/sqrt|radq/g,"√").replace(/cbrt/g,"∛").replace(/∛/g,"³√")
     .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹ⁿ⁺⁻]+/g, function(s){ return "^"+s.split("").map(function(c){ return APICI[c]; }).join(""); })
     .replace(/\s+/g,"")
@@ -474,6 +476,9 @@ function normalizza(t){
     .replace(/,/g,".")
     .replace(/^\+/,"")
     .replace(/[.;]+$/,"");
+  /* unioni: l'ordine dei pezzi non conta, "x>3∨x<2" vale "x<2∨x>3" */
+  if(/[∨∪]/.test(s)) s = s.split(/([∨∪])/).filter(function(q, i){ return i%2===0; }).sort().join(s.indexOf("∪") >= 0 ? "∪" : "∨");
+  return s;
 }
 var APICI = {"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","ⁿ":"n","⁺":"+","⁻":"-"};
 function numeroDa(t){
@@ -1079,8 +1084,8 @@ async function chiediSpiegazione(i, bottone){
     (it.tipo==="scelta" ? String(it.opz[Number(tua)]).replace(/<[^>]+>/g,"") : String(tua));
 
   var richiesta =
-    "Sei un insegnante di matematica e fisica di liceo scientifico e stai spiegando a uno studente del primo anno.\n\n"+
-    "ARGOMENTO: "+t.arg.titolo+" ("+t.mat.nome+", 1º anno)\n"+
+    "Sei un insegnante di matematica e fisica di liceo scientifico e stai spiegando a uno studente del "+t.anno+"º anno.\n\n"+
+    "ARGOMENTO: "+t.arg.titolo+" ("+t.mat.nome+", "+t.anno+"º anno)\n"+
     "ESERCIZIO: "+String(it.q).replace(/<[^>]+>/g,"")+"\n"+
     "RISPOSTA DELLO STUDENTE: "+tuaTxt+"\n"+
     "RISPOSTA CORRETTA: "+String(rispostaGiusta(it)).replace(/<[^>]+>/g,"")+"\n"+

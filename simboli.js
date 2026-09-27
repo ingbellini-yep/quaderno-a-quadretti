@@ -19,6 +19,10 @@
    - Quello che i tasti scrivono è compreso sia dal correttore (x² vale x^2,
      √(2) vale √2 e sqrt(2), ≥ vale >=) sia dal lettore di espressioni del
      laboratorio.
+   - I tasti di «Intervalli e insiemi» (∨, ∪, ∞, ℝ, ∅) e ≠ servono a scrivere le
+     soluzioni delle disequazioni: li legge solo il correttore (∨ vale «o» e
+     «oppure», ∪ vale «U» fra due intervalli, ∞ vale «inf», ≠ vale «!=»; l'ordine
+     dei pezzi di un'unione non conta), non sono espressioni da disegnare.
 
    COME SI ESTENDE
    Simboli.registra({
@@ -85,7 +89,15 @@ registra({id:"confronti", nome:"Uguaglianze e disuguaglianze", ordine:30, simbol
   {etichetta:">", titolo:"Maggiore", inserisci:">"},
   {etichetta:"<", titolo:"Minore", inserisci:"<"},
   {etichetta:"≥", titolo:"Maggiore o uguale", inserisci:"≥"},
-  {etichetta:"≤", titolo:"Minore o uguale", inserisci:"≤"}
+  {etichetta:"≤", titolo:"Minore o uguale", inserisci:"≤"},
+  {etichetta:"≠", titolo:"Diverso", inserisci:"≠"}
+]});
+registra({id:"intervalli", nome:"Intervalli e insiemi", ordine:35, simboli:[
+  {etichetta:"∨", titolo:"Oppure (unione di soluzioni)", inserisci:" ∨ "},
+  {etichetta:"∪", titolo:"Unione di intervalli", inserisci:" ∪ "},
+  {etichetta:"∞", titolo:"Infinito", inserisci:"∞"},
+  {etichetta:"ℝ", titolo:"Insieme dei numeri reali", inserisci:"ℝ"},
+  {etichetta:"∅", titolo:"Insieme vuoto", inserisci:"∅"}
 ]});
 /* ---------- gruppi per gli anni successivi (visibili subito dal 3º anno) ---------- */
 registra({id:"logaritmi", nome:"Esponenziali e logaritmi", ordine:40, anni:[3,4,5], simboli:[

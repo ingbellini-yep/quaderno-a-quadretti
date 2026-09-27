@@ -73,6 +73,15 @@
                                  (per gli esercizi: con soluzione:false non svela la risposta)
      titolo, testo: intestazione della scena; senza, la figura è solo lo schema
 
+   SCHEMA DEL SEGNO DEL TRINOMIO  {tipo:"parabola", ...}
+     a, b, c:  coefficienti iniziali di y = ax² + bx + c (cursori modificabili)
+     verso:    ">" | ">=" | "<" | "<="   disequazione ax² + bx + c (verso) 0
+     cursori:  {a:[min,max,passo], b:[...], c:[...]}  (facoltativo)
+     x, y:     intervalli del grafico (predefiniti [-6, 6] e [-10, 10])
+     soluzione: false            nasconde il riquadro con la soluzione
+     Il grafico evidenzia sull'asse x le soluzioni; sotto compaiono Δ, concavità,
+     zeri (anche irrazionali, scritti con i radicali) e vertice.
+
    SCHEMA DEL TRACCIATORE  {tipo:"tracciatore", ...}
      titolo, testo, assi, unita, x, equazioni:["s = 20 + 10t", "s = 100 - 5t"]
 
@@ -333,6 +342,7 @@ var CSS = [
 ".lab-par>span{grid-column:1/3}",
 ".lab-par output{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-size:13px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink,#111)}",
 ".lab-par input{width:100%}",
+".lab-par-verso select{grid-column:1/3;justify-self:start;min-width:120px;font:inherit;font-size:14px;padding:6px 9px;border:1.5px solid var(--line-strong,#bbb);border-radius:10px;background:var(--surface,#fff);color:var(--ink,#111)}",
 ".lab-eventi{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:13.5px;color:var(--ink-2,#444)}",
 ".lab-eventi b{font-family:\"IBM Plex Mono\",ui-monospace,monospace;font-weight:500;color:var(--ink,#111)}",
 ".lab-grafici{display:grid;align-items:start;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;min-width:0}",
@@ -1202,7 +1212,8 @@ function soddisfa(y, verso){
   var z = Math.abs(y) < 1e-9 ? 0 : y;
   return verso===">" ? z > 0 : verso===">=" ? z >= 0 : verso==="<" ? z < 0 : z <= 0;
 }
-/* un numero come frazione con denominatore piccolo: -1.5 -> "−3/2" */
+/* un numero come frazione con denominatore piccolo: -1.5 -> "−3/2"; gli zeri irrazionali
+   di un trinomio come radicali: 1+√2 -> "1 + √2", (1+√5)/2 -> "(1 + √5)/2" */
 function frazione(x){
   if(!isFinite(x)) return x > 0 ? "+∞" : "−∞";
   if(Math.abs(x) < 1e-12) return "0";
@@ -1210,19 +1221,51 @@ function frazione(x){
     var n = Math.round(x*d);
     if(Math.abs(x-n/d) < 1e-9) return (n < 0 ? "−" : "") + Math.abs(n) + (d > 1 ? "/"+d : "");
   }
-  return formattaCorto(x, 3);
+  return radicale(x) || formattaCorto(x, 3);
 }
+var LIBERI_DA_QUADRATI = (function(){
+  var v = [];
+  for(var n=2; n<=99; n++){ var ok = true; for(var q=2; q*q<=n; q++) if(n%(q*q)===0) ok = false; if(ok) v.push(n); }
+  return v;
+})();
+/* x = (p + q√n)/d con interi piccoli; null se non si trova */
+function radicale(x){
+  for(var d=1; d<=12; d++) for(var i=0; i<LIBERI_DA_QUADRATI.length; i++){
+    var n = LIBERI_DA_QUADRATI[i], r = Math.sqrt(n);
+    for(var q=1; q<=12; q++) for(var sg=1; sg>=-1; sg-=2){
+      var p = Math.round(x*d - sg*q*r);
+      if(Math.abs(x*d - p - sg*q*r) > 1e-8*d) continue;
+      var g = mcd(mcd(Math.abs(p), q), d);
+      if(g > 1) continue;
+      var rad = (q > 1 ? q : "") + "√" + n, num;
+      if(p === 0) num = (sg < 0 ? "−" : "") + rad;
+      else num = (p < 0 ? "−" : "") + Math.abs(p) + (sg < 0 ? " − " : " + ") + rad;
+      return d === 1 ? num : (p === 0 ? num : "(" + num + ")") + "/" + d;
+    }
+  }
+  return null;
+}
+function mcd(a, b){ while(b){ var t = a % b; a = b; b = t; } return a; }
 /* testo di un'espressione con spazi e segni tipografici: "2x-4" -> "2x − 4" */
 function bello(e){
   return String(e).trim().replace(/\*/g,"·").replace(/\s+/g,"")
     .replace(/(.)([+\-])/g, function(m, a, s){ return "([^".indexOf(a) >= 0 ? a+s : a+" "+(s==="-"?"−":"+")+" "; })
     .replace(/^-/,"−").replace(/\(-/g,"(−").replace(/\^2/g,"²").replace(/\^3/g,"³");
 }
+/* zeri di un fattore: formula esatta per il primo e il secondo grado (anche lo zero doppio,
+   dove il grafico tocca l'asse senza attraversarlo), ricerca numerica negli altri casi */
 function zeriDi(f){
   var c0 = f(0), c1 = (f(1)-f(-1))/2, c2 = (f(1)-2*f(0)+f(-1))/2;
-  var lineare = isFinite(c0) && isFinite(c1) && Math.abs(c2) < 1e-9 &&
-    [3.7, -11.3, 25.1].every(function(z){ var y = f(z); return Math.abs(y-(c0+c1*z)) <= 1e-7*(1+Math.abs(y)); });
-  if(lineare) return Math.abs(c1) < 1e-12 ? [] : [Math.round(-c0/c1*1e9)/1e9];
+  var polinomio = isFinite(c0) && isFinite(c1) && isFinite(c2) &&
+    [3.7, -11.3, 25.1].every(function(z){ var y = f(z); return Math.abs(y-(c0+c1*z+c2*z*z)) <= 1e-7*(1+Math.abs(y)); });
+  if(polinomio && Math.abs(c2) < 1e-9) return Math.abs(c1) < 1e-12 ? [] : [Math.round(-c0/c1*1e9)/1e9];
+  if(polinomio){
+    var D = c1*c1-4*c2*c0, scala = c1*c1+Math.abs(4*c2*c0);
+    if(D < -1e-12*scala) return [];
+    if(D <= 1e-12*scala) return [Math.round(-c1/(2*c2)*1e9)/1e9];
+    var q = -(c1 + (c1 >= 0 ? 1 : -1)*Math.sqrt(D))/2, z = [q/c2, c0/q].sort(function(a,b){ return a-b; });
+    return z.map(function(x){ var r = Math.round(x*1e9)/1e9; return Math.abs(f(r)) <= Math.abs(f(x)) ? r : x; });
+  }
   return incroci(f, function(){ return 0; }, -100, 100, 20000).map(function(x){ return Math.round(x*1e9)/1e9; });
 }
 function leggiDisequazione(testo, v){
@@ -1254,6 +1297,11 @@ function intervalliDi(P, punti){
 }
 function testoSoluzione(runs, v){
   if(!runs.length) return {dis:"nessuna soluzione", int:"S = ∅"};
+  /* tutta la retta tranne qualche punto isolato (per esempio x² − 4x + 4 > 0): x ≠ 2 */
+  var buchi = [];
+  var catena = runs[0].da===-Infinity && runs[runs.length-1].a===Infinity && runs.length > 1 &&
+    runs.every(function(r, i){ if(!i) return true; var q = runs[i-1]; buchi.push(q.a); return !q.aChiuso && !r.daChiuso && Math.abs(q.a-r.da) < 1e-12; });
+  if(catena) return {dis:buchi.map(function(b){ return v+" ≠ "+frazione(b); }).join(" ∧ "), int:"S = ℝ ∖ {"+buchi.map(frazione).join("; ")+"}"};
   var dis = [], int = [];
   runs.forEach(function(r){
     var A = r.da===-Infinity, B = r.a===Infinity;
@@ -1452,6 +1500,98 @@ function segni(host, spec){
   return {elemento:root, risultato:function(){ return ris; }};
 }
 
+/* ================= SEGNO DEL TRINOMIO =================
+   Parabola y = ax² + bx + c con i cursori per a, b, c e la scelta del verso: il grafico
+   evidenzia sull'asse x dove il trinomio ha il segno richiesto; sotto, discriminante,
+   concavità, zeri e vertice, e la soluzione della disequazione ax² + bx + c (verso) 0. */
+function testoTrinomio(a, b, c, v){
+  var t = [], coef = function(k, pot){
+    if(Math.abs(k) < 1e-12) return;
+    var s = k < 0 ? "−" : "+", m = Math.abs(k), n = (pot && Math.abs(m-1) < 1e-12) ? "" : formattaCorto(m, 2);
+    t.push({s:s, txt:n+(pot===2 ? v+"²" : pot===1 ? v : "")});
+  };
+  coef(a, 2); coef(b, 1); coef(c, 0);
+  if(!t.length) return "0";
+  return t.map(function(q, i){ return i ? " "+q.s+" "+q.txt : (q.s==="−" ? "−" : "")+q.txt; }).join("");
+}
+function parabola(host, spec){
+  iniettaStile();
+  var root = mk("div","lab-scena lab-parabola");
+  host.appendChild(root);
+  testata(root, spec);
+  var v = spec.variabile || "x";
+  var cur = {a:spec.a!=null ? spec.a : 1, b:spec.b!=null ? spec.b : -2, c:spec.c!=null ? spec.c : -3, verso:normVerso(spec.verso) || ">"};
+  var X = (spec.x || [-6,6]).slice();
+  var cursori = spec.cursori || {};
+  var box = mk("div","lab-parametri"); root.appendChild(box);
+  [["a","coefficiente a", [-3,3,0.5]], ["b","coefficiente b", [-8,8,1]], ["c","termine noto c", [-9,9,1]]].forEach(function(d){
+    var k = d[0], lim = cursori[k] || d[2];
+    var l = mk("label","lab-par"), nome = mk("span"); nome.innerHTML = d[1];
+    var r = mk("input"); r.type = "range"; r.min = lim[0]; r.max = lim[1]; r.step = lim[2]; r.value = cur[k];
+    var out = mk("output"), dec = decimaliPer(lim[2]);
+    function scrivi(){ out.textContent = formatta(cur[k], dec); }
+    scrivi();
+    r.addEventListener("input", function(){ cur[k] = parseFloat(r.value); scrivi(); ridisegna(); });
+    l.appendChild(nome); l.appendChild(r); l.appendChild(out); box.appendChild(l);
+  });
+  var lV = mk("label","lab-par lab-par-verso"), nV = mk("span"); nV.textContent = "verso della disequazione";
+  var sel = mk("select");
+  [[">","> 0"],[">=","≥ 0"],["<","< 0"],["<=","≤ 0"]].forEach(function(o){ var op = mk("option", null, o[1]); op.value = o[0]; if(cur.verso===o[0]) op.selected = true; sel.appendChild(op); });
+  sel.addEventListener("change", function(){ cur.verso = sel.value; ridisegna(); });
+  lV.appendChild(nV); lV.appendChild(sel); box.appendChild(lV);
+  var zona = mk("div"); root.appendChild(zona);
+  var eventi = mk("ul","lab-eventi"); eventi.setAttribute("aria-live","polite"); root.appendChild(eventi);
+  var sol = mk("div","lab-soluzione"); sol.setAttribute("aria-live","polite");
+  if(spec.soluzione!==false) root.appendChild(sol);
+  var g = null;
+
+  function riga(pre, val, post){
+    var li = mk("li"); li.appendChild(document.createTextNode(pre));
+    if(val!=null) li.appendChild(mk("b", null, val));
+    if(post) li.appendChild(document.createTextNode(post));
+    eventi.appendChild(li);
+  }
+  function ridisegna(){
+    var a = cur.a, b = cur.b, c = cur.c, D = b*b-4*a*c;
+    var f = function(x){ return (a*x+b)*x+c; }, testo = testoTrinomio(a, b, c, v);
+    var ris = risolviSegni({variabile:v, num:[a+"*"+v+"^2+("+b+")*"+v+"+("+c+")"], verso:cur.verso});
+    /* uno zero doppio è un punto isolato: si dice se è escluso (> 0) o l'unica soluzione (≤ 0) */
+    var isolato = ris.punti.length===1 && Math.abs(a) > 1e-12 && Math.abs(D) < 1e-12;
+    var stretto = (zona.clientWidth || 600) < 480;
+    var pt = ris.punti.map(function(z){
+      var t = (stretto ? "" : v+" = ")+frazione(z);
+      if(isolato) t += soddisfa(0, cur.verso) ? (ris.runs.length===1 && ris.runs[0].da===ris.runs[0].a ? ": unica soluzione" : "") : ": escluso";
+      return {x:z, y:0, testo:t};
+    });
+    if(Math.abs(a) > 1e-12){
+      var xv = -b/(2*a), yv = f(xv);
+      if(xv >= X[0] && xv <= X[1] && !pt.some(function(q){ return Math.abs(q.x-xv) < 1e-9; })) pt.push({x:xv, y:yv, testo:"V"});
+    }
+    var sp = {assi:{x:v, y:"y"}, variabile:v, x:X, y:spec.y || [-10,10], altezza:spec.altezza, legenda:false,
+              serie:[{nome:"", valore:f, legenda:"y = "+testo}], punti:pt, evidenzia:{serie:0, verso:cur.verso}};
+    if(g) g.ridisegna(sp); else g = grafico(zona, sp);
+    eventi.innerHTML = "";
+    riga("Disequazione: ", testo+" "+simboloVerso(cur.verso)+" 0");
+    if(Math.abs(a) < 1e-12){
+      riga("Con a = 0 il trinomio si riduce a ", testoTrinomio(0, b, c, v), ": la disequazione è di primo grado (o un confronto fra numeri).");
+    } else {
+      riga("Discriminante: ", "Δ = b² − 4ac = "+formattaCorto(D, 2),
+        D > 1e-12 ? " > 0: la parabola taglia l'asse "+v+" in due punti." : D < -1e-12 ? " < 0: la parabola non incontra l'asse "+v+"." : ": la parabola tocca l'asse "+v+" nel vertice.");
+      riga("Concavità: ", a > 0 ? "verso l'alto" : "verso il basso", " (a "+(a > 0 ? ">" : "<")+" 0): fuori dagli zeri il trinomio ha il segno di a, cioè è "+(a > 0 ? "positivo." : "negativo."));
+      if(ris.punti.length) riga(ris.punti.length > 1 ? "Zeri: " : "Zero doppio: ", ris.punti.map(function(z, i){ return (ris.punti.length > 1 ? v+(i ? "₂" : "₁") : v+"₀")+" = "+frazione(z); }).join(",  "));
+      riga("Vertice: ", "V("+formattaCorto(-b/(2*a), 3)+"; "+formattaCorto(f(-b/(2*a)), 3)+")");
+    }
+    sol.innerHTML = "";
+    var r1 = mk("div"); r1.appendChild(document.createTextNode("Soluzione: ")); r1.appendChild(mk("b", null, ris.dis));
+    var r2 = mk("div"); r2.appendChild(document.createTextNode("Come insieme: ")); r2.appendChild(mk("b", null, ris.int));
+    sol.appendChild(r1); sol.appendChild(r2);
+  }
+  ridisegna();
+  var largo = zona.clientWidth >= 480;
+  osservaLarghezza(zona, function(){ if((zona.clientWidth >= 480) !== largo){ largo = !largo; ridisegna(); } });
+  return {elemento:root, ridisegna:ridisegna};
+}
+
 /* ================= registro delle scene ================= */
 var TIPI = {
   grafico: function(host, spec){
@@ -1460,7 +1600,8 @@ var TIPI = {
   },
   moto: moto,
   tracciatore: tracciatore,
-  segni: segni
+  segni: segni,
+  parabola: parabola
 };
 function registra(tipo, fn){ TIPI[tipo] = fn; }
 function monta(host, spec){
@@ -1541,6 +1682,11 @@ function controlla(spec){
     if(spec.sistema && (!Array.isArray(spec.sistema) || !spec.sistema.length)) p.push("sistema vuoto");
     try{ var r = risolviSegni(spec); if(!r.punti.length && !spec.sistema) p.push("nessun punto critico"); }
     catch(e){ p.push("segni: "+e.message); }
+  } else if(tipo==="parabola"){
+    intervallo(spec.x, "x"); intervallo(spec.y, "y");
+    ["a","b","c"].forEach(function(k){ if(spec[k]!=null && !isFinite(spec[k])) p.push(k+" non valido"); });
+    if(spec.verso!=null && !normVerso(spec.verso)) p.push("verso non valido");
+    for(var k2 in (spec.cursori||{})){ var lim = spec.cursori[k2]; if(!(Array.isArray(lim) && lim.length===3 && lim[1] > lim[0] && lim[2] > 0)) p.push("cursore «"+k2+"» non valido"); }
   } else if(tipo==="tracciatore"){
     intervallo(spec.x, "x");
     var X2 = spec.x || [0,10];
@@ -1557,6 +1703,7 @@ var API = {
   grafico: grafico, moto: moto, tracciatore: tracciatore,
   monta: monta, registra: registra, controlla: controlla,
   segni: segni, risolviSegni: risolviSegni, leggiDisequazione: leggiDisequazione,
+  parabola: parabola, frazione: frazione,
   tipi: function(){ return Object.keys(TIPI); }
 };
 if(typeof window!=="undefined") window.Laboratorio = API;
