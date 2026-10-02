@@ -59,13 +59,21 @@ concetto di funzione e piano cartesiano; proporzionalità diretta e inversa; dis
 primo grado (`mat1-disequazioni`: intervalli, principi di equivalenza, sistemi, studio del
 segno, fratte, con lo schema dei segni interattivo).
 
-**Matematica — 2º anno, 1 argomento**: disequazioni di secondo grado
+**Matematica — 2º anno, 2 argomenti**: disequazioni di secondo grado
 (`mat2-disequazioni-secondo-grado`: discriminante, parabola, valori interni ed esterni, casi
 Δ = 0 e Δ < 0, pure e spurie, grado superiore per scomposizione, fratte, sistemi, parametri e
 problemi; laboratorio con la scena `parabola` a cursori, tre schemi dei segni e il tracciatore
-parabola-retta). Gli argomenti del 2º anno vivono nell'array `CONTENUTI_MATEMATICA_2`, in coda
-a `contenuti-matematica.js`, e sono montati da `MATERIE` con `anni:{1:…, 2:…}`: niente file in
-più da pubblicare.
+parabola-retta); disequazioni frazionarie e letterali
+(`mat2-disequazioni-frazionarie-letterali`: condizione di esistenza, regola dei segni del
+quoziente, zeri del numeratore compresi e zeri del denominatore sempre esclusi, riduzione a
+forma normale senza moltiplicare per il denominatore, semplificazione con zeri comuni —
+l'intervallo di soluzioni va spezzato attorno al valore escluso —, fattori di segno costante,
+e la discussione dei parametri: `ax > b` nei tre casi, valore che annulla il coefficiente,
+`x² + kx + 1 > 0` per ogni x, fratte letterali; laboratorio con due schemi dei segni
+modificabili, la scena `parabola` usata come discussione letterale, due rette che mostrano
+l'inversione del verso e il tracciatore dei due membri di una fratta). Gli argomenti del
+2º anno vivono nell'array `CONTENUTI_MATEMATICA_2`, in coda a `contenuti-matematica.js`, e
+sono montati da `MATERIE` con `anni:{1:…, 2:…}`: niente file in più da pubblicare.
 
 **Fisica — 7 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
@@ -134,7 +142,10 @@ il browser lo prenderebbe per l'inizio di un tag HTML e il resto del testo spari
 Per estendere:
 
 - **nuovo argomento** → si aggiunge un oggetto all'array della materia e dell'anno, in coda
-  oppure nella posizione didattica giusta (l'ordine dell'array è quello dell'indice). Gli **id
+  oppure nella posizione didattica giusta (l'ordine dell'array è quello dell'indice). Due
+  avvertenze meccaniche quando si accoda con uno script: l'ultimo oggetto dell'array può
+  chiudere **senza virgola**, che va aggiunta, e i file dei contenuti usano terminazioni di
+  riga **CRLF**, da mantenere anche nel blocco nuovo. Gli **id
   degli argomenti esistenti non vanno mai cambiati** e gli argomenti non vanno rimossi: i
   progressi in `localStorage` sono indicizzati per id e per indice di livello, quindi un
   modulo aggiunto, ovunque sia, non li tocca, un id rinominato li rende irraggiungibili. `verifica.js`
@@ -230,7 +241,10 @@ per esercizio.
 
 Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide, di grafici e scene del
 laboratorio e delle equivalenze della barra dei simboli) sono automatizzate in `verifica.js`:
-`node verifica.js .` dalla cartella del progetto.
+`node verifica.js .` dalla cartella del progetto. Nel confronto fra l'ultimo passo di una guida
+e la risposta attesa, `verifica.js` traduce i comandi LaTeX dei simboli (`\ge` → ≥, `\neq` → ≠,
+`\vee` → ∨, `\dfrac{a}{b}` → `(a)/(b)`), quindi la risposta finale può restare scritta in
+LaTeX come nel resto dei contenuti.
 
 Dopo modifiche a `laboratorio.js` o all'impaginazione conviene provare la pagina in un browser
 vero, anche a 390 px di larghezza e in tema scuro: le figure si adattano alla larghezza del

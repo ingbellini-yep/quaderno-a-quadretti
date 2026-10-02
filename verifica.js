@@ -58,8 +58,18 @@ for (const [m, a] of tutti) {
   // guide allo svolgimento: presenza, forma, ultimo passo coerente con la risposta
   let nGuide = 0; const senza = [], incoerenti = [];
   const testoPiano = s => String(s == null ? "" : s).replace(/<[^>]+>/g, "");
-  // testo LaTeX in forma confrontabile: via comandi, graffe e dollari, così a\cdot10^{n} diventa "a10n" come nel correttore
-  const pulisci = s => normalizza(testoPiano(String(s)).replace(/\{,\}/g, ",").replace(/\\(cdot|,|;|!|quad|qquad|left|right|circ|text|mathrm|tfrac|dfrac|frac|to)/g, "").replace(/[{}$]/g, "").replace(/&deg;/g, "°").replace(/&nbsp;/g, " "));
+  // testo LaTeX in forma confrontabile con le risposte scritte a mano: i comandi dei simboli
+  // diventano i caratteri corrispondenti (\ge -> ≥, \vee -> ∨), le frazioni diventano (a)/(b)
+  // e il resto dei comandi, le graffe e i dollari spariscono, così a\cdot10^{n} dà "a10n".
+  const latex = s => String(s)
+    .replace(/\{,\}/g, ",")
+    .replace(/\\(?:neq|ne)\b/g, "≠").replace(/\\(?:geq|ge)\b/g, "≥").replace(/\\(?:leq|le)\b/g, "≤")
+    .replace(/\\vee\b/g, "∨").replace(/\\cup\b/g, "∪").replace(/\\infty\b/g, "∞")
+    .replace(/\\mathbb\{R\}/g, "ℝ").replace(/\\pm\b/g, "±")
+    .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)")
+    .replace(/\\(cdot|,|;|!|quad|qquad|left|right|circ|text|mathrm|to)/g, "")
+    .replace(/[{}$]/g, "").replace(/&deg;/g, "°").replace(/&nbsp;/g, " ");
+  const pulisci = s => normalizza(latex(testoPiano(String(s))));
   a.livelli.forEach((l, li) => l.items.forEach((it, ii) => {
     const tag = `L${li + 1}.${ii + 1}`;
     if (!Array.isArray(it.guida) || !it.guida.length) { senza.push(tag); return; }
