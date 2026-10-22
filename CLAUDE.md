@@ -20,6 +20,8 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `contenuti-fisica.js` | contenuti di fisica | sì |
 | `laboratorio.js` | motori grafici condivisi: grafici delle equazioni (`Laboratorio.grafico`), animazione del moto su rotaia (`Laboratorio.moto`), tracciatore di equazioni scritte dallo studente, lettore di espressioni senza `eval`, controlli usati da `verifica.js`. Schema delle scene in testa al file | sì |
 | `simboli.js` | barra dei simboli cliccabili (potenze, radici con indice, frazione, confronti) che compare sotto ogni campo con l'attributo `data-simboli`: risposte del quiz, svolgimento guidato, importazione di esercizi, espressioni del laboratorio. Registro di gruppi espandibile: istruzioni in testa al file | sì |
+| `generatore.js` | generatore di esercizi simili: piccolo motore di calcolo esatto (frazioni, polinomi, funzioni razionali, scomposizione, insiemi soluzione) che riconosce un esercizio, ne cambia i dati e ricalcola risposta, opzioni, spiegazione, guida e figure (`window.Generatore`). Vedi la sezione «Generatore di esercizi simili» | sì |
+| `verifica_generatore.py` | controllo indipendente con SymPy degli esercizi prodotti dal generatore (legge il file scritto da `node verifica.js . --campione FILE`) | sì |
 | `quaderno-locale.html` | stesso motore già avvolto nella pagina completa, per l'apertura con doppio clic; **va rigenerato** da `index.html` dopo ogni modifica al motore (testa fino a `<title>` + `index.html` + `</body></html>`) | no (solo locale) |
 | `LEGGIMI.md` | note per l'utente | no (solo locale) |
 | `CLAUDE.md` | queste istruzioni di progetto | sì |
@@ -27,11 +29,12 @@ pillole, formulario, esempi svolti, link a risorse gratuite e palestra di autova
 | `.claude/skills/frontend-design/` | skill `frontend-design` di Anthropic: linee guida di design per chi lavora sull'interfaccia del sito | sì |
 | `skills-lock.json` | origine e impronta delle skill installate | sì |
 
-I cinque file pubblicati (`index.html`, `laboratorio.js`, `simboli.js` e i due file dei
-contenuti) devono restare nella stessa cartella: la pagina li carica per percorso relativo.
-Anche su claude.ai `laboratorio.js` e `simboli.js` vanno pubblicati insieme alla pagina, come
-i contenuti; se `laboratorio.js` manca, al posto delle figure compare un avviso, se manca
-`simboli.js` i campi funzionano senza barra.
+I sei file pubblicati (`index.html`, `laboratorio.js`, `simboli.js`, `generatore.js` e i due
+file dei contenuti) devono restare nella stessa cartella: la pagina li carica per percorso
+relativo. Anche su claude.ai `laboratorio.js`, `simboli.js` e `generatore.js` vanno pubblicati
+insieme alla pagina, come i contenuti; se `laboratorio.js` manca, al posto delle figure compare
+un avviso, se manca `simboli.js` i campi funzionano senza barra, se manca `generatore.js` le
+sezioni «Esercizi simili» ed «Esercizi nuovi» non compaiono e il resto funziona.
 
 ### Skill installate
 
@@ -215,6 +218,50 @@ o `dentro:selettore` per scegliere dove mettere la barra). Ogni nuovo simbolo va
 equivalente alle forme scritte a mano sia in `normalizza` (index.html) sia nel lettore di
 espressioni di `laboratorio.js` (se è un simbolo di calcolo; ∨, ∪, ∞, ℝ, ∅ e ≠ riguardano solo
 il correttore), e aggiunto ai test della barra in `verifica.js`.
+
+## Generatore di esercizi simili
+
+`generatore.js` prende uno o più esercizi e produce una batteria di esercizi dello stesso tipo
+con dati nuovi, ognuno con risposta ricalcolata, varianti accettate, opzioni, spiegazione,
+guida allo svolgimento e, se c'erano, figure rigenerate (schema dei segni, grafici, schema di
+Ruffini). Non usa `eval` né servizi esterni: il calcolo è esatto (frazioni con `BigInt`,
+polinomi in più lettere, funzioni razionali).
+
+- **Famiglie** (`Generatore.famiglie`): `risolvi` (equazioni, disequazioni intere e fratte,
+  sistemi, con sottodomande «quante soluzioni intere», «la minore»...), `sviluppa` (prodotti
+  notevoli e calcolo letterale, anche il grado), `scomponi`, `dividi` (quoziente e resto, Ruffini),
+  `valuta` (valore numerico), `esistenza` (condizioni di esistenza), `delta` (discriminante),
+  `problema` (problemi con dati numerici: il generatore cerca la formula che lega i dati alla
+  risposta, con controllo delle unità di misura, e cambia i dati) e `modello` (vedi sotto).
+- **Regola di riconoscimento**: un esercizio è riconosciuto solo se il generatore, rifacendo il
+  calcolo, ritrova la risposta dichiarata (accettata dal correttore vero, `corretta` di
+  `index.html`). Se la ritrova, i dati si possono cambiare in sicurezza; altrimenti l'esercizio
+  è segnalato «non riconosciuto» con il motivo. Le righe incollate senza risposta («Risolvi
+  x² − 5x + 6 = 0») sono risolte dal generatore stesso.
+- **Generazione**: i numeri del testo cambiano mantenendo la «firma» dell'esercizio (stesso tipo
+  di insieme soluzione, zeri interi se erano interi, radicali se c'erano radicali, numeri uguali
+  restano uguali, segni coerenti); per i polinomi di grado alto si costruisce l'esercizio a
+  partire dagli zeri. Ogni esercizio nuovo è ricontrollato con il correttore prima di entrare
+  nella batteria. Le batterie sono a tre livelli e vengono salvate come quelle importate
+  (chiave `quaderno-quadretti-importati`, etichetta «tuo»).
+- **Campo `modello`** (facoltativo, in un esercizio importato o dei contenuti): per i tipi che
+  il generatore non sa riconoscere da solo. `{parametri:{v:[40,120,10], t:[1,5,1]},
+  testo:"Un'auto viaggia a {v} km/h per {t} h...", risposta:"v*t", unita:"km", tolleranza:0.5,
+  spiegazione:"... $s = {v}\\cdot {t} = {risposta}$ km"}`: `{nome}` inserisce un parametro,
+  `{risposta}` il risultato, `{=espressione}` un calcolo. Un esercizio con solo `modello` viene
+  istanziato all'importazione. Su claude.ai il pulsante «Chiedi a Claude un modello» manda gli
+  esercizi non riconosciuti al modello (`sample`) e accetta il modello proposto solo se,
+  con i dati originali, riproduce la risposta dichiarata.
+- **Interfaccia**: nella pagina iniziale la sezione «Esercizi simili» (testo incollato, una
+  riga per esercizio con «Risposta:» facoltativa, oppure JSON come nell'importazione, con materia,
+  anno, numero di esercizi e livelli), con rapporto per esercizio, anteprima e «Salva
+  nell'indice»; nella pagina di ogni argomento la sezione «Esercizi nuovi» genera una batteria
+  «Simili a «…»» dagli esercizi dell'argomento riconosciuti.
+- **Verifiche**: `node verifica.js .` genera batterie da tutti gli argomenti con tre semi e le
+  sottopone agli stessi controlli dei contenuti; per la verifica indipendente con SymPy:
+  `node verifica.js . --campione campione.json` e poi `python3 verifica_generatore.py
+  campione.json` (gli esercizi di tipo `problema` e `modello` sono saltati: sono controllati
+  numericamente da `verifica.js`).
 
 ## Correttore delle risposte aperte
 

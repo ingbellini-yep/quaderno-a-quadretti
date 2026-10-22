@@ -323,6 +323,33 @@ h1,h2,h3,h4{font-family:"Asap","Segoe UI",sans-serif;font-weight:700;letter-spac
 .importato-riga .t{flex:1; min-width:160px}
 .etichetta{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line); border-radius:4px; padding:1px 6px; white-space:nowrap}
 details.modello summary{cursor:pointer; font-size:13.5px; color:var(--accent)}
+/* ---------- generatore di esercizi simili ---------- */
+.genera{display:grid; gap:12px}
+.gen-opz{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center}
+.genera label{font-size:13.5px; color:var(--ink-2); display:inline-flex; gap:6px; align-items:center}
+.genera select{font:inherit; padding:5px 8px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface); color:var(--ink)}
+.genera .gen-titolo{display:grid; gap:4px; font-size:12.5px; color:var(--muted)}
+.genera .gen-titolo input{width:100%; max-width:460px; padding:8px 12px; border:1.5px solid var(--line-strong); border-radius:12px; background:var(--surface-2); color:var(--ink); font:inherit; font-size:14.5px}
+.genera textarea{width:100%; min-height:130px; padding:10px 13px; border:1.5px solid var(--line-strong); border-radius:12px; background:var(--surface-2); color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:13px; resize:vertical}
+.genera textarea:focus,.genera .gen-titolo input:focus{border-color:var(--accent); outline:none; background:var(--surface)}
+.gen-file{font-size:13px !important; color:var(--muted) !important}
+.gen-file input{max-width:220px; font-size:12.5px}
+.gen-esito{display:grid; gap:12px; margin-top:4px}
+.gen-sintesi{margin:0; font-size:14.5px; color:var(--ink-2)}
+.gen-sintesi b{color:var(--ink)}
+.gen-rapporto{display:grid; gap:6px; margin:0; padding:0; list-style:none}
+.gen-rapporto li{display:grid; grid-template-columns:22px minmax(0,1fr); gap:2px 8px; padding:8px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); font-size:13.5px; overflow-wrap:anywhere}
+.gen-rapporto .segno{font-family:"IBM Plex Mono",monospace; font-weight:700; color:var(--ok)}
+.gen-rapporto li.no .segno{color:var(--muted)}
+.gen-rapporto .fam{grid-column:2; font-size:12.5px; color:var(--muted)}
+.gen-rapporto li.no .fam{color:var(--err)}
+.gen-anteprima{display:grid; gap:8px}
+.gen-anteprima h3{font-size:15px; margin:4px 0 0; font-family:"Asap",sans-serif}
+.gen-es{display:grid; gap:5px; padding:11px 14px; border:1px solid var(--line); border-radius:12px; background:var(--surface); overflow-wrap:anywhere}
+.gen-es .num{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+.gen-es .risp{font-size:13px; color:var(--ink-2)}
+.gen-es .risp b{color:var(--ok); font-weight:600}
+.gen-altri{margin:0; font-size:13px; color:var(--muted)}
 details.modello pre{white-space:pre-wrap; font-size:12px; background:var(--surface-2); padding:10px 13px; border-radius:10px; overflow-x:auto; max-height:320px; overflow-y:auto}
 </style>
 
@@ -353,6 +380,7 @@ window.MathJax = {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
 <script src="laboratorio.js" charset="utf-8"></script>
 <script src="simboli.js" charset="utf-8"></script>
+<script src="generatore.js" charset="utf-8"></script>
 <script src="contenuti-matematica.js" charset="utf-8"></script>
 <script src="contenuti-fisica.js" charset="utf-8"></script>
 
@@ -687,6 +715,7 @@ function renderHome(){
 
   h += htmlProgressi();
   h += htmlImport();
+  h += htmlGeneratore();
 
   var daRiprendere = [];
   MATERIE.forEach(function(m){ for(var a in m.anni){ (m.anni[a]||[]).forEach(function(arg){
@@ -720,6 +749,7 @@ function renderHome(){
   });
   collegaProgressi();
   collegaImport();
+  collegaGeneratore();
   tex($main);
 }
 
@@ -816,6 +846,17 @@ function renderArgomento(t){
   });
   h += '</div></section>';
 
+  if(window.Generatore){
+    var nRic = 0, nTot = 0;
+    a.livelli.forEach(function(l){ l.items.forEach(function(it){ nTot++; if(window.Generatore.riconosci(it).famiglia) nRic++; }); });
+    h += '<section class="scheda"><div class="scheda-in sezione">'+
+         '<h2>Esercizi nuovi</h2>'+
+         '<p class="sez-sub">'+(nRic ? 'Il motore crea una batteria nuova con la stessa forma degli esercizi di questo argomento, livello per livello: numeri diversi, risposte calcolate, spiegazioni e svolgimento guidato. Riconosce <b>'+nRic+'</b> esercizi su '+nTot+'; gli altri sono domande di teoria.'
+               : 'Gli esercizi di questo argomento sono domande di teoria o di ragionamento: il motore non li può variare.')+'</p>'+
+         (nRic ? '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="gen-arg">Genera esercizi simili</button></div>' : '')+
+         '<div class="esito-imp" id="gen-arg-esito" hidden></div></div></section>';
+  }
+
   if(a.risorse && a.risorse.length){
     h += '<section class="scheda"><div class="scheda-in sezione">'+
          '<h2>Approfondimenti online</h2>'+
@@ -837,6 +878,8 @@ function renderArgomento(t){
       avviaGuida(a.id, Number(b.getAttribute("data-guida-liv")), Number(b.getAttribute("data-guida-idx")), "argomento");
     });
   });
+  var bGen = document.getElementById("gen-arg");
+  if(bGen) bGen.addEventListener("click", function(){ generaDaArgomento(t, bGen); });
   montaLab($main);
   tex($main);
 }
@@ -1558,7 +1601,11 @@ var MODELLO_IMPORT = {
               {s:"Dividi entrambi i membri per il coefficiente della x.", r:"$x=8:2=4$", k:["4"]} ] },
     { q:"Un'equazione di primo grado ha al massimo:", tipo:"scelta",
       opz:["nessuna soluzione","una soluzione","due soluzioni","infinite soluzioni"], ok:1,
-      spieg:"Se il coefficiente della x non è zero la soluzione è una sola." }
+      spieg:"Se il coefficiente della x non è zero la soluzione è una sola." },
+    { modello:{ testo:"Un'auto viaggia a ${v}$ km/h per ${t}$ ore. Quanti km percorre?",
+                parametri:{ v:{min:40, max:120, passo:10}, t:{valori:[1, 1.5, 2, 3]} },
+                vincoli:["v*t <= 300"], risposta:"v*t", unita:"km", decimali:0,
+                spiegazione:"Spazio = velocità per tempo: ${v}\\cdot {t} = {risposta}$ km." } }
   ]}]
 };
 function caricaImportati(){
@@ -1614,6 +1661,12 @@ function validaImport(src, materiaDefault, annoDefault){
     var lv = { n:String(l.n||("Livello "+(li+1))), d:String(l.d||""), items:[] };
     l.items.forEach(function(it, ii){
       var tag="Livello "+(li+1)+", esercizio "+(ii+1)+": ";
+      // un esercizio con il solo «modello»: il testo e la risposta li crea il generatore
+      if(it && typeof it==="object" && !it.q && it.modello && window.Generatore){
+        var g = window.Generatore.simili([{modello:it.modello}], {quanti:1, seme:li*100+ii+1});
+        if(g.argomento) it = Object.assign({}, g.argomento.livelli[0].items[0], {modello:it.modello});
+        else { err.push(tag+"il «modello» non è valido (servono testo, parametri e risposta)."); return; }
+      }
       if(!it || typeof it!=="object" || !it.q){ err.push(tag+"manca il testo «q»."); return; }
       var o = { q:String(it.q), tipo: it.tipo==="scelta"?"scelta":"aperta",
                 spieg:String(it.spieg||"Nessuna spiegazione fornita per questo esercizio.") };
@@ -1632,6 +1685,7 @@ function validaImport(src, materiaDefault, annoDefault){
         o.sol = sol;
       }
       if(it.grafico && labValido(it.grafico)) o.grafico = it.grafico;
+      if(it.modello && typeof it.modello==="object") o.modello = it.modello;
       if(Array.isArray(it.guida) && it.guida.length){
         o.guida = it.guida.filter(function(p){ return p&&p.s&&p.r; }).map(normPasso);
         if(!o.guida.length) delete o.guida;
@@ -1700,6 +1754,154 @@ function collegaImport(){
   });
 }
 
+/* =================== esercizi simili (generatore.js) =================== */
+/* Il generatore riconosce la forma degli esercizi (equazioni e disequazioni, calcolo letterale,
+   scomposizioni, divisioni, valori numerici, problemi con unità di misura, campo «modello»),
+   crea esercizi nuovi e ne calcola le risposte. Le batterie si salvano come quelle importate. */
+var ESEMPI_GEN = "Risolvi x^2-5x+6>0\nSviluppa (2a-3)^2\nScomponi x^3-7x+6\nQual è il resto della divisione (x^3-2x^2+5):(x+1)?\nUn'auto percorre 120 km in 2 ore. Qual è la velocità media in km/h? Risposta: 60 km/h";
+var GEN = {items:null, ris:null, seme:null, origine:null};
+if(window.Generatore) window.Generatore.configura({corretta:corretta, normalizza:normalizza});
+function htmlGeneratore(){
+  if(!window.Generatore) return "";
+  return '<section class="scheda"><div class="scheda-in sezione"><h2>Esercizi simili</h2>'+
+    '<p class="sez-sub">Scrivi o incolla uno o più esercizi, uno per riga, oppure un file JSON come per l’importazione: il motore ne riconosce la forma e crea esercizi nuovi con numeri diversi, calcolando risposte, spiegazioni e svolgimento guidato. Per i problemi con dati numerici aggiungi la risposta in fondo alla riga («Risposta: 60 km/h»).</p>'+
+    '<div class="genera">'+
+    '<div class="gen-opz">'+
+    '<label>Materia <select id="gen-materia">'+MATERIE.map(function(m){ return '<option value="'+m.id+'">'+esc(m.nome)+'</option>'; }).join("")+'</select></label>'+
+    '<label>Anno <select id="gen-anno">'+ANNI.map(function(y){ return '<option value="'+y+'">'+y+'º</option>'; }).join("")+'</select></label>'+
+    '<label>Esercizi <select id="gen-quanti"><option value="10">10, un livello</option><option value="20">20, due livelli</option><option value="30" selected>30, tre livelli</option></select></label>'+
+    '<label>Difficoltà <select id="gen-diff"><option value="crescente">crescente</option><option value="uguale">come gli originali</option></select></label>'+
+    '</div>'+
+    '<label class="gen-titolo">Titolo della batteria (facoltativo)<input type="text" id="gen-titolo" autocomplete="off" placeholder="per esempio: Disequazioni, ripasso"></label>'+
+    '<textarea id="gen-testo" data-simboli aria-label="Esercizi di partenza" placeholder="Un esercizio per riga, per esempio:\nRisolvi x^2-5x+6>0\nScomponi x^3-7x+6"></textarea>'+
+    '<div class="azioni" style="margin-top:0"><button class="btn" type="button" id="gen-vai">Genera l’anteprima</button>'+
+    '<label class="gen-file">oppure da un file <input type="file" id="gen-file" accept=".json,.txt,application/json,text/plain"></label>'+
+    '<details class="modello"><summary>Esempi di righe</summary><pre>'+esc(ESEMPI_GEN)+'</pre></details></div>'+
+    '<div id="gen-esito" class="gen-esito" hidden aria-live="polite"></div>'+
+    '</div></div></section>';
+}
+/* esercizi di partenza: JSON (argomento, {items}, elenco) oppure testo, un esercizio per riga */
+function leggiPartenza(raw){
+  var obj = null;
+  if(/^\s*[\[{]/.test(raw)){ try{ obj = JSON.parse(raw); }catch(e){ return {errore:"JSON non valido: "+e.message}; } }
+  if(!obj) return {items:window.Generatore.leggiTesto(raw)};
+  var items = [];
+  if(Array.isArray(obj)) items = obj;
+  else if(Array.isArray(obj.livelli)) obj.livelli.forEach(function(l){ (l.items||[]).forEach(function(it){ items.push(it); }); });
+  else if(Array.isArray(obj.items)) items = obj.items;
+  items = items.filter(function(it){ return it && typeof it==="object" && (it.q || it.modello); });
+  if(!items.length) return {errore:"Nel file non ci sono esercizi: serve «items», «livelli» oppure un elenco."};
+  return {items:items, materia:obj.materia, anno:obj.anno};
+}
+function salvaGenerato(arg, materia, anno){
+  var v = validaImport(arg, materia, anno);
+  if(v.errori) return {errori:v.errori};
+  v.arg.id = arg.id; v.arg.generato = arg.generato;
+  var lista = caricaImportati();
+  if(trovaArgomento(v.arg.id) || lista.some(function(x){ return x.id===v.arg.id; })) v.arg.id += "-"+Date.now().toString(36);
+  lista.push(v.arg); salvaImportati(lista); montaImportati();
+  return {arg:v.arg, n:v.n};
+}
+function eseguiGeneratore(){
+  var box = document.getElementById("gen-esito"); if(!box || !GEN.items) return;
+  var quanti = Number(document.getElementById("gen-quanti").value), diff = document.getElementById("gen-diff").value;
+  var materia = document.getElementById("gen-materia").value, anno = Number(document.getElementById("gen-anno").value);
+  var titolo = document.getElementById("gen-titolo").value.trim();
+  var R = window.Generatore.simili(GEN.items, {quanti:quanti, livelli:quanti/10, difficolta:diff, seme:GEN.seme, titolo:titolo || null, materia:materia, anno:anno});
+  GEN.ris = R; box.hidden = false;
+  var ric = R.rapporto.filter(function(r){ return r.famiglia; }).length, h = "";
+  var tot = R.argomento ? R.argomento.livelli.reduce(function(a, l){ return a + l.items.length; }, 0) : 0;
+  h += '<p class="gen-sintesi"><b>'+ric+'</b> '+(ric===1?'esercizio riconosciuto':'esercizi riconosciuti')+' su '+R.rapporto.length+
+       (tot ? ' · creati <b>'+tot+'</b> esercizi nuovi in '+R.argomento.livelli.length+(R.argomento.livelli.length===1?' livello':' livelli') : '')+'</p>';
+  h += '<ul class="gen-rapporto">'+R.rapporto.map(function(r){
+    return '<li class="'+(r.famiglia?'si':'no')+'"><span class="segno" aria-hidden="true">'+(r.famiglia?'✓':'–')+'</span><span>'+(r.q || '(esercizio senza testo)')+'</span>'+
+           '<span class="fam">'+(r.famiglia ? esc(r.nome)+(r.generati ? ' · '+r.generati+' esercizi nuovi' : '') : 'Non riconosciuto: '+esc(r.motivo))+'</span></li>';
+  }).join("")+'</ul>';
+  if(R.errore) h += '<div class="esito-imp no">'+esc(R.errore)+'</div>';
+  if(R.argomento){
+    h += '<div class="gen-anteprima"><h3>Anteprima</h3>';
+    var mostrati = 0;
+    R.argomento.livelli.forEach(function(l, li){ l.items.slice(0, li===0 ? 3 : 2).forEach(function(it, ii){
+      mostrati++;
+      h += '<div class="gen-es"><span class="num">'+esc(l.n)+' · esercizio '+(ii+1)+'</span><div>'+it.q+'</div>'+segnaLab(it.grafico)+
+           '<div class="risp">Risposta: <b>'+(it.tipo==="scelta" ? it.opz[it.ok] : esc(rispostaGiusta(it)))+'</b></div></div>';
+    }); });
+    if(tot > mostrati) h += '<p class="gen-altri">…e altri '+(tot-mostrati)+' esercizi, con spiegazione e svolgimento guidato.</p>';
+    h += '</div>';
+  }
+  var nonRic = GEN.items.filter(function(it, i){ return !R.rapporto[i].famiglia && it.q && (it.num || (it.sol && it.sol.length)); }).length;
+  h += '<div class="azioni" style="margin-top:0">'+
+       (R.argomento ? '<button class="btn" type="button" id="gen-salva">Salva nell’indice</button>' : '')+
+       (R.argomento ? '<button class="btn neutro" type="button" id="gen-altri">Altri esercizi</button>' : '')+
+       (S.sample && nonRic ? '<button class="btn ghost" type="button" id="gen-ai">Chiedi a Claude un modello per '+(nonRic===1?'l’esercizio non riconosciuto':'i '+nonRic+' esercizi non riconosciuti')+'</button>' : '')+
+       '</div><div class="esito-imp" id="gen-msg" hidden></div>';
+  box.innerHTML = h;
+  montaLab(box); tex(box);
+  var bs = document.getElementById("gen-salva"), ba = document.getElementById("gen-altri"), bi = document.getElementById("gen-ai");
+  if(bs) bs.addEventListener("click", function(){
+    var r = salvaGenerato(R.argomento, materia, anno), msg = document.getElementById("gen-msg");
+    if(r.errori){ msg.hidden = false; msg.className = "esito-imp no"; msg.innerHTML = "Salvataggio non riuscito:<br>"+r.errori.slice(0, 6).map(esc).join("<br>"); return; }
+    renderRail();
+    msg.hidden = false; msg.className = "esito-imp ok";
+    msg.innerHTML = 'Salvata «'+esc(r.arg.titolo)+'» con '+r.n+' esercizi: la trovi nell’indice e fra gli esercizi tuoi. <button class="btn piccolo" type="button" data-vai="'+esc(r.arg.id)+'">Aprila</button>';
+    msg.querySelector("[data-vai]").addEventListener("click", function(){ apriArgomento(r.arg.id); });
+    bs.disabled = true;
+  });
+  if(ba) ba.addEventListener("click", function(){ GEN.seme = (Math.random()*4294967295)>>>0; eseguiGeneratore(); });
+  if(bi) bi.addEventListener("click", function(){ chiediModelli(bi); });
+}
+/* su claude.ai: per gli esercizi non riconosciuti Claude propone un modello parametrico,
+   che il generatore controlla (deve ridare la risposta dell'originale) e poi usa */
+async function chiediModelli(bottone){
+  var lista = GEN.items.map(function(it, i){ return {it:it, i:i}; }).filter(function(x){ return !GEN.ris.rapporto[x.i].famiglia && x.it.q && (x.it.num || (x.it.sol && x.it.sol.length)); }).slice(0, 6);
+  var trovati = 0;
+  bottone.disabled = true;
+  for(var k=0; k<lista.length; k++){
+    bottone.textContent = "Sto chiedendo a Claude ("+(k+1)+" di "+lista.length+")…";
+    try{
+      var r = await S.sample(window.Generatore.richiestaModello(lista[k].it), {modelTier:"default"});
+      var md = window.Generatore.modelloDaRisposta(r && r.text, lista[k].it);
+      if(md){ GEN.items[lista[k].i] = Object.assign({}, lista[k].it, {modello:md}); trovati++; }
+    }catch(e){}
+  }
+  eseguiGeneratore();
+  var msg = document.getElementById("gen-msg");
+  if(msg){ msg.hidden = false; msg.className = "esito-imp "+(trovati?"ok":"no"); msg.textContent = trovati ? "Claude ha proposto "+trovati+(trovati===1?" modello":" modelli")+" che il motore ha verificato sugli esercizi originali." : "Claude non ha proposto modelli che il motore potesse verificare: prova a riscrivere l’esercizio con tutti i dati e la risposta."; }
+}
+function collegaGeneratore(){
+  var vai = document.getElementById("gen-vai"); if(!vai) return;
+  var file = document.getElementById("gen-file"), testo = document.getElementById("gen-testo");
+  file.addEventListener("change", function(){
+    var f = file.files && file.files[0]; if(!f) return;
+    var rd = new FileReader(); rd.onload = function(){ testo.value = String(rd.result||""); }; rd.readAsText(f);
+  });
+  vai.addEventListener("click", function(){
+    var box = document.getElementById("gen-esito"), raw = testo.value.trim();
+    box.hidden = false;
+    if(!raw){ box.innerHTML = '<div class="esito-imp no">Scrivi almeno un esercizio, oppure scegli un file.</div>'; return; }
+    var p = leggiPartenza(raw);
+    if(p.errore){ box.innerHTML = '<div class="esito-imp no">'+esc(p.errore)+'</div>'; return; }
+    if(p.materia && MATERIE.some(function(m){ return m.id===p.materia; })) document.getElementById("gen-materia").value = p.materia;
+    if(p.anno && ANNI.indexOf(Number(p.anno))>=0) document.getElementById("gen-anno").value = String(p.anno);
+    GEN.items = p.items; GEN.seme = (Math.random()*4294967295)>>>0;
+    eseguiGeneratore();
+  });
+}
+/* dalla pagina di un argomento: una batteria nuova, livello per livello, con la stessa forma */
+function generaDaArgomento(t, bottone){
+  var items = [];
+  t.arg.livelli.forEach(function(l, li){ l.items.forEach(function(it){ items.push(Object.assign({}, it, {_livello:li})); }); });
+  bottone.disabled = true; bottone.textContent = "Sto generando…";
+  setTimeout(function(){
+    var R = window.Generatore.simili(items, {perLivello:true, difficolta:"uguale", titolo:"Simili a «"+t.arg.titolo.replace(/^Simili a «(.*)»$/, "$1")+"»", materia:t.mat.id, anno:t.anno});
+    var esito = document.getElementById("gen-arg-esito");
+    if(R.errore){ bottone.disabled = false; bottone.textContent = "Genera esercizi simili"; esito.hidden = false; esito.className = "esito-imp no"; esito.textContent = R.errore; return; }
+    var r = salvaGenerato(R.argomento, t.mat.id, t.anno);
+    if(r.errori){ bottone.disabled = false; bottone.textContent = "Genera esercizi simili"; esito.hidden = false; esito.className = "esito-imp no"; esito.textContent = r.errori[0]; return; }
+    renderRail(); apriArgomento(r.arg.id);
+  }, 30);
+}
+
 /* =================== avvio =================== */
 document.getElementById("tgl-indice").addEventListener("click", function(){
   $rail.classList.toggle("aperto");
@@ -1718,8 +1920,9 @@ renderHome();
 /* barra dei simboli (simboli.js): i gruppi mostrati dipendono da materia e anno correnti;
    per l'importazione valgono materia e anno scelti nei menu della sezione */
 if(window.Simboli) window.Simboli.contesto(function(el){
-  if(el && el.id==="imp-testo"){
-    var m = document.getElementById("imp-materia"), a = document.getElementById("imp-anno");
+  if(el && (el.id==="imp-testo" || el.id==="gen-testo")){
+    var pre = el.id==="imp-testo" ? "imp" : "gen";
+    var m = document.getElementById(pre+"-materia"), a = document.getElementById(pre+"-anno");
     return {materia: m ? m.value : null, anno: a ? Number(a.value) : null};
   }
   return {materia: S.materia ? S.materia.id : null, anno: S.anno};
