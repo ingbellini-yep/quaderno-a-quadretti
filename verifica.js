@@ -10,20 +10,25 @@ eval(fs.readFileSync(path.join(dir, "contenuti-matematica.js"), "utf8"));
 eval(fs.readFileSync(path.join(dir, "contenuti-fisica.js"), "utf8"));
 eval(fs.readFileSync(path.join(dir, "laboratorio.js"), "utf8"));
 const Lab = window.Laboratorio;
+eval(fs.readFileSync(path.join(dir, "generatore.js"), "utf8"));
+const Gen = window.Generatore;
 const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
 const ini = html.indexOf("function normalizza"), fin = html.indexOf("function rispostaGiusta");
 (0, eval)(html.slice(ini, fin));
 console.log("correttore estratto:", typeof corretta);
+Gen.configura({corretta, normalizza});
 
 const tutti = [...window.CONTENUTI_MATEMATICA.map(a => ["mat", a]), ...(window.CONTENUTI_MATEMATICA_2 || []).map(a => ["mat2", a]), ...window.CONTENUTI_FISICA.map(a => ["fis", a])];
 let errori = 0;
-for (const [m, a] of tutti) {
+// generato = true: batteria prodotta da generatore.js (niente vincolo 3x10, l'ultimo passo della
+// guida senza la risposta è un errore e non solo un avviso, riga di riepilogo solo se ci sono problemi)
+function controllaArgomento(m, a, generato) {
   const problemi = [];
   ["id", "titolo", "sommario", "pillole", "formule", "esempi", "risorse", "livelli"].forEach(k => { if (a[k] == null) problemi.push("manca " + k); });
-  if (tutti.filter(([, b]) => b.id === a.id).length !== 1) problemi.push("id duplicato");
+  if (!generato && tutti.filter(([, b]) => b.id === a.id).length !== 1) problemi.push("id duplicato");
   a.esempi.forEach((e, i) => { if (!e.t || !Array.isArray(e.passi) || !e.r) problemi.push("esempio " + i + " incompleto"); });
   a.risorse.forEach((r, i) => { if (!/^https:\/\//.test(r.u) || !r.t || !r.f) problemi.push("risorsa " + i + " incompleta"); });
-  if (a.livelli.length !== 3 || a.livelli.some(l => l.items.length !== 10)) problemi.push("non 3x10 esercizi");
+  if (!generato && (a.livelli.length !== 3 || a.livelli.some(l => l.items.length !== 10))) problemi.push("non 3x10 esercizi");
   a.livelli.forEach((l, li) => l.items.forEach((it, ii) => {
     const tag = `L${li + 1}.${ii + 1}`;
     if (!it.q || !it.spieg) problemi.push(tag + ": manca q o spieg");
@@ -91,7 +96,8 @@ for (const [m, a] of tutti) {
     if (!ok) incoerenti.push(tag);
   }));
   if (senza.length) problemi.push("senza guida: " + senza.join(","));
-  if (incoerenti.length) console.log("     ATTENZIONE " + a.id + ": ultimo passo senza la risposta in " + incoerenti.join(", "));
+  if (incoerenti.length && generato) problemi.push("ultimo passo della guida senza la risposta: " + incoerenti.join(","));
+  else if (incoerenti.length) console.log("     ATTENZIONE " + a.id + ": ultimo passo senza la risposta in " + incoerenti.join(", "));
   // correttore
   const fallimenti = []; let nTest = 0;
   a.livelli.forEach((l, li) => l.items.forEach((it, ii) => {
@@ -109,10 +115,48 @@ for (const [m, a] of tutti) {
     }
   }));
   const riga = `${m} ${a.id}: pillole ${a.pillole.length}, esempi ${a.esempi.length}, risorse ${a.risorse.length}, esercizi ${a.livelli.map(l => l.items.length).join("/")}, ${nFigure ? "figure " + nFigure + ", " : ""}test correttore ${nTest} (falliti ${fallimenti.length})`;
-  console.log((problemi.length || fallimenti.length ? "ERR " : "OK  ") + riga);
+  if (!generato || problemi.length || fallimenti.length) console.log((problemi.length || fallimenti.length ? "ERR " : "OK  ") + riga);
   if (problemi.length) console.log("     " + problemi.join("; "));
   if (fallimenti.length) console.log("     " + fallimenti.slice(0, 10).join("; "));
   errori += problemi.length + fallimenti.length;
+  return {problemi: problemi.length + fallimenti.length, test: nTest};
+}
+for (const [m, a] of tutti) controllaArgomento(m, a, false);
+
+// generatore di esercizi simili (generatore.js): per ogni argomento si genera una batteria con
+// semi fissi a partire da tutti i suoi esercizi e la si sottopone agli stessi controlli. Con
+// --campione FILE gli esercizi generati vengono scritti in un file JSON per la verifica SymPy
+// (python verifica_generatore.py FILE).
+{
+  const campione = [], semi = [2026, 7, 99];
+  const iCamp = process.argv.indexOf("--campione");
+  let nGen = 0, nRic = 0, nTot = 0, nProb = 0, nTest = 0;
+  const perFam = {};
+  for (const [m, a] of tutti) {
+    const items = [];
+    a.livelli.forEach((l, li) => l.items.forEach(it => items.push(Object.assign({}, it, {_livello: li}))));
+    for (const seme of semi) {
+      const R = Gen.simili(items, {perLivello: true, seme, materia: m === "fis" ? "fisica" : "matematica", anno: m === "mat2" ? 2 : 1});
+      if (seme === semi[0]) { nTot += items.length; nRic += R.rapporto.filter(r => r.famiglia).length; }
+      if (R.errore) continue;
+      R.argomento.livelli.forEach(l => l.items.forEach(it => { nGen++; perFam[it.generato] = (perFam[it.generato] || 0) + 1; if (iCamp > 0) campione.push(Object.assign({argomento: a.id}, it)); }));
+      const esito = controllaArgomento("gen", R.argomento, true);
+      nProb += esito.problemi; nTest += esito.test;
+    }
+  }
+  // testo semplice, esercizi senza risposta e campo «modello»
+  const righe = Gen.leggiTesto("Risolvi x^2-5x+6>0\nSviluppa (2a-3)^2\nScomponi x^3-7x+6\nUn'auto percorre 120 km in 2 ore. Qual è la velocità media in km/h? Risposta: 60 km/h");
+  const Rt = Gen.simili(righe, {quanti: 8, seme: 3});
+  if (Rt.errore || Rt.rapporto.some(r => !r.famiglia)) { console.log("ERR generatore: testo semplice non riconosciuto " + JSON.stringify(Rt.rapporto)); nProb++; }
+  else nProb += controllaArgomento("gen", Rt.argomento, true).problemi;
+  const md = {testo: "Un'auto viaggia a {v} km/h per {t} ore. Quanti km percorre?", parametri: {v: {min: 40, max: 120, passo: 10}, t: {valori: [1, 1.5, 2, 3]}},
+    vincoli: ["v*t <= 300"], risposta: "v*t", unita: "km", decimali: 0, spiegazione: "Spazio = velocità per tempo: {v}·{t} = {risposta} km."};
+  const Rm = Gen.simili([{modello: md}], {quanti: 5, seme: 4});
+  if (Rm.errore) { console.log("ERR generatore: modello non usato"); nProb++; }
+  else { nProb += controllaArgomento("gen", Rm.argomento, true).problemi; Rm.argomento.livelli[0].items.forEach(it => { const v = /a (\d+) km\/h per ([\d,]+) ore/.exec(it.q); if (!v || Math.abs(+v[1] * parseFloat(v[2].replace(",", ".")) - it.num.v) > 1e-9) { console.log("ERR generatore: modello con risposta sbagliata in «" + it.q + "»"); nProb++; } }); }
+  console.log((nProb ? "ERR " : "OK  ") + `generatore: ${nRic}/${nTot} esercizi riconosciuti, ${nGen} generati con ${semi.length} semi (${Object.keys(perFam).map(f => f + " " + perFam[f]).join(", ")}), test correttore ${nTest}, problemi ${nProb}`);
+  errori += nProb;
+  if (iCamp > 0) { fs.writeFileSync(process.argv[iCamp + 1], JSON.stringify(campione, null, 1)); console.log("     campione scritto in " + process.argv[iCamp + 1] + " (" + campione.length + " esercizi)"); }
 }
 // barra dei simboli (simboli.js): quello che scrivono i tasti deve valere quanto la forma
 // scritta a mano, per il correttore e per il lettore di espressioni del laboratorio
