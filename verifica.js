@@ -58,7 +58,7 @@ function controllaArgomento(m, a, generato) {
   cerca(a, a.id);
   if (tagFinti.size) problemi.push("«<» seguito da una lettera (metti uno spazio dopo <): " + [...tagFinti].slice(0, 4).join("; "));
   // comandi LaTeX rimasti senza backslash dopo la valutazione JavaScript
-  const rotti = JSON.stringify(a).match(/[^\\a-z&](cdot|dfrac|frac|mathrm|qquad|sqrt|times|text|leq|geq|neq)\b/g);
+  const rotti = JSON.stringify(a, (k, v) => (k === "sol" || k === "k") ? undefined : v).match(/[^\\a-z&](cdot|dfrac|frac|mathrm|qquad|sqrt|times|text|leq|geq|neq)\b/g);
   if (rotti) problemi.push("LaTeX senza backslash: " + [...new Set(rotti.map(s => s.slice(1)))].join(","));
   // guide allo svolgimento: presenza, forma, ultimo passo coerente con la risposta
   let nGuide = 0; const senza = [], incoerenti = [];
@@ -71,6 +71,7 @@ function controllaArgomento(m, a, generato) {
     .replace(/\\(?:neq|ne)\b/g, "≠").replace(/\\(?:geq|ge)\b/g, "≥").replace(/\\(?:leq|le)\b/g, "≤")
     .replace(/\\vee\b/g, "∨").replace(/\\cup\b/g, "∪").replace(/\\infty\b/g, "∞")
     .replace(/\\mathbb\{R\}/g, "ℝ").replace(/\\pm\b/g, "±")
+    .replace(/\\sqrt\[(\d+)\]\{([^{}]*)\}/g, (m, n, a) => n.replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]) + "√(" + a + ")").replace(/\\sqrt\{([^{}]*)\}/g, "√($1)")
     .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)")
     .replace(/\\(cdot|,|;|!|quad|qquad|left|right|circ|text|mathrm|to)/g, "")
     .replace(/[{}$]/g, "").replace(/&deg;/g, "°").replace(/&nbsp;/g, " ");

@@ -62,7 +62,12 @@ concetto di funzione e piano cartesiano; proporzionalità diretta e inversa; dis
 primo grado (`mat1-disequazioni`: intervalli, principi di equivalenza, sistemi, studio del
 segno, fratte, con lo schema dei segni interattivo).
 
-**Matematica — 2º anno, 2 argomenti**: disequazioni di secondo grado
+**Matematica — 2º anno, 3 argomenti**: radicali (`mat2-radicali`, primo dell'anno: numeri
+irrazionali e insieme ℝ, radici quadrate, cubiche e n-esime, condizioni di esistenza e segno,
+`√(a²) = |a|`, proprietà invariantiva, riduzione allo stesso indice e confronto, semplificazione,
+prodotto e quoziente, potenza e radice di radice, trasporto fuori e dentro il segno di radice con il
+caso del fattore negativo; laboratorio con i grafici di √x, ∛x e ⁴√x a confronto, `√(x²)` contro
+`x` e il tracciatore per scoprire dove un radicale esiste); disequazioni di secondo grado
 (`mat2-disequazioni-secondo-grado`: discriminante, parabola, valori interni ed esterni, casi
 Δ = 0 e Δ < 0, pure e spurie, grado superiore per scomposizione, fratte, sistemi, parametri e
 problemi; laboratorio con la scena `parabola` a cursori, tre schemi dei segni e il tracciatore
@@ -78,10 +83,15 @@ l'inversione del verso e il tracciatore dei due membri di una fratta). Gli argom
 2º anno vivono nell'array `CONTENUTI_MATEMATICA_2`, in coda a `contenuti-matematica.js`, e
 sono montati da `MATERIE` con `anni:{1:…, 2:…}`: niente file in più da pubblicare.
 
-**Fisica — 7 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
+**Fisica — 8 argomenti** (1º anno): moto, traiettoria e sistema di riferimento; attrito;
 legge di Hooke e forza elastica; leve e macchine semplici; notazione scientifica e ordini
 di grandezza (convenzione: mantissa < 5 → 10^n, altrimenti 10^(n+1)); moto rettilineo
 uniforme (`fis1-mru`, con quattro scene di laboratorio e grafici in esempi ed esercizi);
+l'accelerazione e la legge velocità-tempo (`fis1-accelerazione`, inserito fra MRU e MRUA:
+accelerazione media e istantanea, segno dell'accelerazione rispetto alla velocità, MRUA e legge
+`v = v₀ + at`, grafico v-t con pendenza, intercetta e area, moto non uniforme con l'accelerazione
+media come coefficiente angolare della secante; due scene `moto` con grafico a-t, un grafico con
+la secante e il triangolo della pendenza, il tracciatore delle rette v-t);
 moto rettilineo uniformemente accelerato (`fis1-mrua`: accelerazione, frenate, inseguimenti,
 caduta libera con g = 9,8 m/s², quattro scene di laboratorio con grafico accelerazione-tempo).
 
@@ -290,8 +300,9 @@ Le verifiche 1 e 2 (più il controllo dei backslash LaTeX, delle guide, di grafi
 laboratorio e delle equivalenze della barra dei simboli) sono automatizzate in `verifica.js`:
 `node verifica.js .` dalla cartella del progetto. Nel confronto fra l'ultimo passo di una guida
 e la risposta attesa, `verifica.js` traduce i comandi LaTeX dei simboli (`\ge` → ≥, `\neq` → ≠,
-`\vee` → ∨, `\dfrac{a}{b}` → `(a)/(b)`), quindi la risposta finale può restare scritta in
-LaTeX come nel resto dei contenuti.
+`\vee` → ∨, `\dfrac{a}{b}` → `(a)/(b)`, `\sqrt{a}` → `√(a)`, `\sqrt[3]{a}` → `³√(a)`), quindi la risposta finale può
+restare scritta in LaTeX come nel resto dei contenuti. Il controllo dei comandi LaTeX senza backslash
+ignora i campi `sol` e `k`, dove `sqrt` e `cbrt` sono forme scritte a mano lecite.
 
 Dopo modifiche a `laboratorio.js` o all'impaginazione conviene provare la pagina in un browser
 vero, anche a 390 px di larghezza e in tema scuro: le figure si adattano alla larghezza del
